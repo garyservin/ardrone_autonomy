@@ -92,10 +92,10 @@ index 91895b3..94d1cb8 100644
  # (in) GENERIC_LDFLAGS
 diff --git a/Makefile b/Makefile
 new file mode 100644
-index 0000000..2ad03a2
+index 0000000..fdc14a1
 --- /dev/null
 +++ b/Makefile
-@@ -0,0 +1,25 @@
+@@ -0,0 +1,26 @@
 +SDK_PATH:=$(shell pwd)/ARDroneLib
 +PC_TARGET=yes
 +USE_ANDROID=yes
@@ -122,11 +122,11 @@ index 0000000..2ad03a2
 +install:
 +	mkdir -p ${INSTALL_PREFIX}
 +	find $(SDK_PATH)/Soft/Build -type f -name '*.a' -exec cp '{}' ${INSTALL_PREFIX} \;
-+	find $(SDK_PATH)/Soft/Build -type f -name '*.so' -exec cp '{}' ${INSTALL_PREFIX} \;
-diff -urw ARDroneLib/Soft/Lib/Build/Makefile ARDroneLib/Soft/Lib/Build/Makefile
---- ARDroneLib/Soft/Lib/Build/Makefile
-+++ ARDroneLib/Soft/Lib/Build/Makefile
-@@ -117,10 +117,10 @@
+diff --git a/ARDroneLib/Soft/Lib/Build/Makefile b/ARDroneLib/Soft/Lib/Build/Makefile
+index 5a6dcf3..11c2dee 100644
+--- a/ARDroneLib/Soft/Lib/Build/Makefile
++++ b/ARDroneLib/Soft/Lib/Build/Makefile
+@@ -117,10 +117,10 @@ ifneq ($(CONTROL_DLL),yes)
           $(ARDRONE_TOOL_DIR)/Navdata/ardrone_navdata_client.c
  
  
@@ -141,10 +141,11 @@ diff -urw ARDroneLib/Soft/Lib/Build/Makefile ARDroneLib/Soft/Lib/Build/Makefile
  
         ifeq ($(USE_ARDRONE_VICON),yes)
           GENERIC_CFLAGS+=-DUSE_ARDRONE_VICON
-diff -urw ARDroneLib/VP_SDK/Build/sysvar.makefile ARDroneLib/VP_SDK/Build/sysvar.makefile
---- ARDroneLib/VP_SDK/Build/sysvar.makefile
-+++ ARDroneLib/VP_SDK/Build/sysvar.makefile
-@@ -88,7 +88,7 @@
+diff --git a/ARDroneLib/VP_SDK/Build/sysvar.makefile b/ARDroneLib/VP_SDK/Build/sysvar.makefile
+index 9ad49cb..3c0a824 100644
+--- a/ARDroneLib/VP_SDK/Build/sysvar.makefile
++++ b/ARDroneLib/VP_SDK/Build/sysvar.makefile
+@@ -88,7 +88,7 @@ else
  	else
  	     OS_TARGET_ID=$(shell uname -sor | sed -e "s/[ \/]/_/g")
          ifeq ($(USE_ANDROID),yes)
