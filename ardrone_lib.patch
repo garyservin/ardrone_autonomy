@@ -1,8 +1,8 @@
 diff --git a/ARDroneLib/FFMPEG/Makefile b/ARDroneLib/FFMPEG/Makefile
-index 0b96558..0d575f3 100644
+index 0b96558..de22fc1 100644
 --- a/ARDroneLib/FFMPEG/Makefile
 +++ b/ARDroneLib/FFMPEG/Makefile
-@@ -40,6 +40,18 @@ ifneq ($(FFMPEG_ARCHIVE_ROOTDIR), ffmpeg/)
+@@ -40,6 +40,16 @@ ifneq ($(FFMPEG_ARCHIVE_ROOTDIR), ffmpeg/)
  	$(SILENT_MAKE)rm -rf $(FFMPEG_ARCHIVE_ROOTDIR)
  endif
  	$(SILENT_MAKE)tar xzf parrot_ffmpeg_build_utils.tar.gz
@@ -15,9 +15,7 @@ index 0b96558..0d575f3 100644
 +	$(SILENT_MAKE)sed -i "s/\t\tbuild_shared_architecture armv6 \" --arch=armv6 --cpu=arm1136j-s --disable-pic --disable-neon --enable-armvfp\"//g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/\t\tmake_shared_binary_from armv6//g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/FFMPEG_SHARED/FFMPEG_STATIC/g" ffmpeg/autoConf.bash
-+	$(SILENT_MAKE)sed -i "s/avutil postproc swscale/avutil postproc swscale avutil/g" ffmpeg/Makefile
-+	$(SILENT_MAKE)sed -i "s/-Wl,-rpath-link,libswscale //g" ffmpeg/configure
-+	$(SILENT_MAKE)sed -i "s/-Wl,-rpath-link,libavutil/-Wl,-rpath-link,libavutil -Wl,-rpath-link,libswscale/g" ffmpeg/configure
++	$(SILENT_MAKE)sed -i "s/{cross_prefix}$${pkg_config_default}/{pkg_config_default}/g" ffmpeg/configure
  	$(SILENT_MAKE)echo "Done"
  endif
  endif
