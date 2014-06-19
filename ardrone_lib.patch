@@ -1,8 +1,8 @@
 diff --git a/ARDroneLib/FFMPEG/Makefile b/ARDroneLib/FFMPEG/Makefile
-index 0b96558..e919507 100644
+index 0b96558..0d575f3 100644
 --- a/ARDroneLib/FFMPEG/Makefile
 +++ b/ARDroneLib/FFMPEG/Makefile
-@@ -40,6 +40,15 @@ ifneq ($(FFMPEG_ARCHIVE_ROOTDIR), ffmpeg/)
+@@ -40,6 +40,18 @@ ifneq ($(FFMPEG_ARCHIVE_ROOTDIR), ffmpeg/)
  	$(SILENT_MAKE)rm -rf $(FFMPEG_ARCHIVE_ROOTDIR)
  endif
  	$(SILENT_MAKE)tar xzf parrot_ffmpeg_build_utils.tar.gz
@@ -15,9 +15,44 @@ index 0b96558..e919507 100644
 +	$(SILENT_MAKE)sed -i "s/\t\tbuild_shared_architecture armv6 \" --arch=armv6 --cpu=arm1136j-s --disable-pic --disable-neon --enable-armvfp\"//g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/\t\tmake_shared_binary_from armv6//g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/FFMPEG_SHARED/FFMPEG_STATIC/g" ffmpeg/autoConf.bash
++	$(SILENT_MAKE)sed -i "s/avutil postproc swscale/avutil postproc swscale avutil/g" ffmpeg/Makefile
++	$(SILENT_MAKE)sed -i "s/-Wl,-rpath-link,libswscale //g" ffmpeg/Makefile
++	$(SILENT_MAKE)sed -i "s/-Wl,-rpath-link,libavutil/-Wl,-rpath-link,libavutil -Wl,-rpath-link,libswscale/g" ffmpeg/configure
  	$(SILENT_MAKE)echo "Done"
  endif
  endif
+diff --git a/ARDroneLib/Soft/Build/Makefile b/ARDroneLib/Soft/Build/Makefile
+index c0e8d09..fc13cba 100644
+--- a/ARDroneLib/Soft/Build/Makefile
++++ b/ARDroneLib/Soft/Build/Makefile
+@@ -68,7 +68,7 @@ ifeq ($(USE_LINUX),yes)
+ 	sh $(shell pwd)/check_dependencies.sh static RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
+ else
+ ifeq ($(USE_ANDROID),yes)
+-    sh $(shell pwd)/check_dependencies.sh android_no_neon RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
++	sh $(shell pwd)/check_dependencies.sh android_no_neon RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
+ endif
+ endif
+ endif
+diff --git a/ARDroneLib/Soft/Lib/Build/Makefile b/ARDroneLib/Soft/Lib/Build/Makefile
+index 5a6dcf3..11c2dee 100644
+--- a/ARDroneLib/Soft/Lib/Build/Makefile
++++ b/ARDroneLib/Soft/Lib/Build/Makefile
+@@ -117,10 +117,10 @@ ifneq ($(CONTROL_DLL),yes)
+          $(ARDRONE_TOOL_DIR)/Navdata/ardrone_navdata_client.c
+ 
+ 
+-       ifeq ($(USE_IPHONE),no)
+-         GENERIC_LIBRARY_SOURCE_FILES+=				  \
+-           $(ARDRONE_TOOL_DIR)/Com/config_serial.c
+-       endif
++       #ifeq ($(USE_IPHONE),no)
++       #  GENERIC_LIBRARY_SOURCE_FILES+=				  \
++       #    $(ARDRONE_TOOL_DIR)/Com/config_serial.c
++       #endif
+ 
+        ifeq ($(USE_ARDRONE_VICON),yes)
+          GENERIC_CFLAGS+=-DUSE_ARDRONE_VICON
 diff --git a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c b/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
 index 8466d4c..0b4f2e7 100644
 --- a/ARDroneLib/Soft/Lib/ardrone_tool/ardrone_tool.c
@@ -49,54 +84,19 @@ index a081c9a..93005ec 100644
  
  // There because not defined in embedded
  void api_configuration_get_ctrl_mode(void);
-diff --git a/ARDroneLib/VP_SDK/Build/Makefile b/ARDroneLib/VP_SDK/Build/Makefile
-index bda3259..27418d2 100644
---- a/ARDroneLib/VP_SDK/Build/Makefile
-+++ b/ARDroneLib/VP_SDK/Build/Makefile
-@@ -105,6 +105,10 @@ define ADD_RULE_TEMPLATE
-   ifeq ($(USE_ANDROID),yes)
-      build_lib: build_$(1)
-   endif
-+# Following three lines added after more than four hours of WTF debugging -- mani
-+  ifeq ($(USE_LINUX),yes)
-+     build_lib: build_$(1)
-+  endif
-   endif
-   endif
-   endif
-diff --git a/ARDroneLib/VP_SDK/Build/generic.makefile b/ARDroneLib/VP_SDK/Build/generic.makefile
-index 91895b3..94d1cb8 100644
---- a/ARDroneLib/VP_SDK/Build/generic.makefile
-+++ b/ARDroneLib/VP_SDK/Build/generic.makefile
-@@ -35,10 +35,25 @@ INTERNAL_MKDIR=mkdir -p
- INTERNAL_ECHO=echo
- 
- # (in) GENERIC_COMMAND_PREFIX
-+
-+# solve problem with system-wide ccache:
-+# gcc is in different folder (/usr/lib/ccache) than and ar,objdump and strip.
-+# This is only a hack to fix this issue
- INTERNAL_CC:=$(GENERIC_COMMAND_PREFIX)gcc
--INTERNAL_AR:=$(GENERIC_COMMAND_PREFIX)ar
--INTERNAL_OBJCOPY:=$(GENERIC_COMMAND_PREFIX)objcopy
--INTERNAL_STRIP:=$(GENERIC_COMMAND_PREFIX)strip
-+
-+ifneq (,$(findstring ccache,$(GENERIC_COMMAND_PREFIX)))
-+    # Found ccache
-+    NON_TOOLCHAIN_PATH=$(shell which ar | sed "s:/ar::")
-+    NON_GENERIC_COMMAND_PREFIX=$(NON_TOOLCHAIN_PATH)/
-+    INTERNAL_AR:=$(NON_GENERIC_COMMAND_PREFIX)ar
-+    INTERNAL_OBJCOPY:=$(NON_GENERIC_COMMAND_PREFIX)objcopy
-+    INTERNAL_STRIP:=$(NON_GENERIC_COMMAND_PREFIX)strip
-+else
-+    INTERNAL_AR:=$(GENERIC_COMMAND_PREFIX)ar
-+    INTERNAL_OBJCOPY:=$(GENERIC_COMMAND_PREFIX)objcopy
-+    INTERNAL_STRIP:=$(GENERIC_COMMAND_PREFIX)strip
-+endif
-+
- 
- # (in) GENERIC_CFLAGS
- # (in) GENERIC_LDFLAGS
+diff --git a/ARDroneLib/VP_SDK/Build/sysvar.makefile b/ARDroneLib/VP_SDK/Build/sysvar.makefile
+index 9ad49cb..3c0a824 100644
+--- a/ARDroneLib/VP_SDK/Build/sysvar.makefile
++++ b/ARDroneLib/VP_SDK/Build/sysvar.makefile
+@@ -88,7 +88,7 @@ else
+ 	else
+ 	     OS_TARGET_ID=$(shell uname -sor | sed -e "s/[ \/]/_/g")
+         ifeq ($(USE_ANDROID),yes)
+-          TOOLCHAIN_PATH=$(NDK_PATH)/toolchains/$(TOOLCHAIN_VERSION)/prebuilt/linux-x86/bin
++          TOOLCHAIN_PATH=$(NDK_PATH)/toolchains/$(TOOLCHAIN_VERSION)/prebuilt/linux-x86_64/bin
+           GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/arm-linux-androideabi-
+         else
+ 	TOOLCHAIN_PATH=$(shell which gcc | sed "s:/gcc::")
 diff --git a/Makefile b/Makefile
 new file mode 100644
 index 0000000..3a5915a
@@ -130,48 +130,3 @@ index 0000000..3a5915a
 +install:
 +	mkdir -p ${INSTALL_PREFIX}
 +	find $(SDK_PATH)/Soft/Build -type f -name '*.a' -exec cp '{}' ${INSTALL_PREFIX} \;
-diff --git a/ARDroneLib/Soft/Lib/Build/Makefile b/ARDroneLib/Soft/Lib/Build/Makefile
-index 5a6dcf3..11c2dee 100644
---- a/ARDroneLib/Soft/Lib/Build/Makefile
-+++ b/ARDroneLib/Soft/Lib/Build/Makefile
-@@ -117,10 +117,10 @@ ifneq ($(CONTROL_DLL),yes)
-          $(ARDRONE_TOOL_DIR)/Navdata/ardrone_navdata_client.c
- 
- 
--       ifeq ($(USE_IPHONE),no)
--         GENERIC_LIBRARY_SOURCE_FILES+=				  \
--           $(ARDRONE_TOOL_DIR)/Com/config_serial.c
--       endif
-+       #ifeq ($(USE_IPHONE),no)
-+       #  GENERIC_LIBRARY_SOURCE_FILES+=				  \
-+       #    $(ARDRONE_TOOL_DIR)/Com/config_serial.c
-+       #endif
- 
-        ifeq ($(USE_ARDRONE_VICON),yes)
-          GENERIC_CFLAGS+=-DUSE_ARDRONE_VICON
-diff --git a/ARDroneLib/VP_SDK/Build/sysvar.makefile b/ARDroneLib/VP_SDK/Build/sysvar.makefile
-index 9ad49cb..3c0a824 100644
---- a/ARDroneLib/VP_SDK/Build/sysvar.makefile
-+++ b/ARDroneLib/VP_SDK/Build/sysvar.makefile
-@@ -88,7 +88,7 @@ else
- 	else
- 	     OS_TARGET_ID=$(shell uname -sor | sed -e "s/[ \/]/_/g")
-         ifeq ($(USE_ANDROID),yes)
--          TOOLCHAIN_PATH=$(NDK_PATH)/toolchains/$(TOOLCHAIN_VERSION)/prebuilt/linux-x86/bin
-+          TOOLCHAIN_PATH=$(NDK_PATH)/toolchains/$(TOOLCHAIN_VERSION)/prebuilt/linux-x86_64/bin
-           GENERIC_COMMAND_PREFIX=$(TOOLCHAIN_PATH)/arm-linux-androideabi-
-         else
- 	TOOLCHAIN_PATH=$(shell which gcc | sed "s:/gcc::")
-diff --git a/ARDroneLib/Soft/Build/Makefile b/ARDroneLib/Soft/Build/Makefile
-index c0e8d09..fc13cba 100644
---- a/ARDroneLib/Soft/Build/Makefile
-+++ b/ARDroneLib/Soft/Build/Makefile
-@@ -68,7 +68,7 @@ ifeq ($(USE_LINUX),yes)
- 	sh $(shell pwd)/check_dependencies.sh static RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
- else
- ifeq ($(USE_ANDROID),yes)
--    sh $(shell pwd)/check_dependencies.sh android_no_neon RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
-+	sh $(shell pwd)/check_dependencies.sh android_no_neon RELEASE_BUILD=$(RELEASE_BUILD) $(MAKECMDGOALS)
- endif
- endif
- endif
