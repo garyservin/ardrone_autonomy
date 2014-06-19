@@ -56,7 +56,8 @@ add_message_files(
 generate_messages(DEPENDENCIES geometry_msgs std_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
-catkin_package(DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev CATKIN_DEPENDS message_runtime)
+catkin_package(DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev CATKIN_DEPENDS message_runtime
+               LIBRARIES ardrone_driver)
 
 include(ExternalProject)
 ExternalProject_Add(ardronelib
@@ -80,9 +81,17 @@ include_directories(${catkin_INCLUDE_DIRS})
 # add Boost_INCLUDE_DIRS
 include_directories(${Boost_INCLUDE_DIRS})
 
+# add library
+add_library(ardrone_driver
+    src/ardrone_driver.cpp
+    src/video.cpp
+    src/ardrone_sdk.cpp
+    src/teleop_twist.cpp
+)
+
 # build executable
-add_executable(ardrone_driver src/ardrone_driver.cpp src/video.cpp src/ardrone_sdk.cpp src/teleop_twist.cpp)
-target_link_libraries(ardrone_driver pc_ardrone avcodec swscale avutil vlib  sdk SDL ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+add_executable(ardrone_driver_node src/ardrone_driver_node.cpp)
+target_link_libraries(ardrone_driver_node ardrone_driver pc_ardrone avcodec swscale avutil vlib  sdk SDL ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
 #If you have a package which builds messages and/or services as well as
 #executables that use them, you need to create an explicit dependency on
@@ -91,6 +100,10 @@ target_link_libraries(ardrone_driver pc_ardrone avcodec swscale avutil vlib  sdk
 add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
 
 #install Rules
-install(TARGETS ardrone_driver RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS ardrone_driver ardrone_driver_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 
