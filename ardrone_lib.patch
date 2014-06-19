@@ -16,7 +16,7 @@ index 0b96558..0d575f3 100644
 +	$(SILENT_MAKE)sed -i "s/\t\tmake_shared_binary_from armv6//g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/FFMPEG_SHARED/FFMPEG_STATIC/g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/avutil postproc swscale/avutil postproc swscale avutil/g" ffmpeg/Makefile
-+	$(SILENT_MAKE)sed -i "s/-Wl,-rpath-link,libswscale //g" ffmpeg/Makefile
++	$(SILENT_MAKE)sed -i "s/-Wl,-rpath-link,libswscale //g" ffmpeg/configure
 +	$(SILENT_MAKE)sed -i "s/-Wl,-rpath-link,libavutil/-Wl,-rpath-link,libavutil -Wl,-rpath-link,libswscale/g" ffmpeg/configure
  	$(SILENT_MAKE)echo "Done"
  endif
