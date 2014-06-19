@@ -15,7 +15,7 @@ index 0b96558..de22fc1 100644
 +	$(SILENT_MAKE)sed -i "s/\t\tbuild_shared_architecture armv6 \" --arch=armv6 --cpu=arm1136j-s --disable-pic --disable-neon --enable-armvfp\"//g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/\t\tmake_shared_binary_from armv6//g" ffmpeg/autoConf.bash
 +	$(SILENT_MAKE)sed -i "s/FFMPEG_SHARED/FFMPEG_STATIC/g" ffmpeg/autoConf.bash
-+	$(SILENT_MAKE)sed -i "s/{cross_prefix}$${pkg_config_default}/{pkg_config_default}/g" ffmpeg/configure
++	$(SILENT_MAKE)sed -i 's/{cross_prefix}$${pkg_config_default}/{pkg_config_default}/g' ffmpeg/configure
  	$(SILENT_MAKE)echo "Done"
  endif
  endif
