@@ -90,8 +90,8 @@ add_library(ardrone_driver
 )
 
 # build executable
-add_executable(ardrone_driver src/ardrone_driver.cpp src/video.cpp src/ardrone_sdk.cpp src/teleop_twist.cpp)
-target_link_libraries(ardrone_driver pc_ardrone avcodec swscale avutil vlib sdk ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+add_executable(ardrone_driver_node src/ardrone_driver_node.cpp)
+target_link_libraries(ardrone_driver_node ardrone_driver pc_ardrone avcodec swscale avutil vlib sdk ${Boost_LIBRARIES} ${catkin_LIBRARIES})
 
 #If you have a package which builds messages and/or services as well as
 #executables that use them, you need to create an explicit dependency on
