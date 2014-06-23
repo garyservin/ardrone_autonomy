@@ -4,7 +4,19 @@ cmake_minimum_required(VERSION 2.8.3)
 project(ardrone_autonomy)
 
 # Load catkin and all dependencies required for this package
-find_package(catkin REQUIRED COMPONENTS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager message_generation)
+find_package(
+  catkin
+  REQUIRED COMPONENTS
+    roscpp
+    image_transport
+    sensor_msgs
+    std_srvs
+    tf
+    camera_info_manager
+    message_generation
+    std_msgs
+    geometry_msgs
+)
 
 add_service_files(
 	DIRECTORY srv
@@ -56,11 +68,26 @@ add_message_files(
 generate_messages(DEPENDENCIES geometry_msgs std_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
-catkin_package(DEPENDS roscpp image_transport sensor_msgs std_srvs tf camera_info_manager libsdl-dev CATKIN_DEPENDS message_runtime
-               LIBRARIES ardrone_driver)
+catkin_package(
+  INCLUDE_DIRS include
+  LIBRARIES
+    ardrone_driver
+  CATKIN_DEPENDS
+    message_runtime
+    roscpp
+    image_transport
+    sensor_msgs
+    std_srvs
+    tf
+    camera_info_manager
+    std_msgs
+    geometry_msgs
+  DEPENDS
+    libsdl-dev
+)
 
 include(ExternalProject)
-ExternalProject_Add(ardronelib
+externalproject_add(ardronelib
 	URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	PATCH_COMMAND patch -p1 < ${PROJECT_SOURCE_DIR}/ardrone_lib.patch
@@ -81,6 +108,9 @@ include_directories(${catkin_INCLUDE_DIRS})
 # add Boost_INCLUDE_DIRS
 include_directories(${Boost_INCLUDE_DIRS})
 
+# add headers directory
+include_directories(include)
+
 # add library
 add_library(ardrone_driver
     src/ardrone_driver.cpp
@@ -89,15 +119,26 @@ add_library(ardrone_driver
     src/teleop_twist.cpp
 )
 
-# build executable
-add_executable(ardrone_driver_node src/ardrone_driver_node.cpp)
-target_link_libraries(ardrone_driver_node ardrone_driver pc_ardrone avcodec swscale avutil vlib sdk ${Boost_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(ardrone_driver
+  pc_ardrone
+  avcodec
+  swscale
+  avutil
+  vlib
+  sdk
+  ${Boost_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
 
 #If you have a package which builds messages and/or services as well as
 #executables that use them, you need to create an explicit dependency on
 #the automatically-generated message target so that they are built in
 #the correct order
 add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
+
+# build executable
+add_executable(ardrone_driver_node src/ardrone_driver_node.cpp)
+target_link_libraries(ardrone_driver_node ardrone_driver)
 
 #install Rules
 install(TARGETS ardrone_driver ardrone_driver_node
@@ -106,4 +147,7 @@ install(TARGETS ardrone_driver ardrone_driver_node
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+)
