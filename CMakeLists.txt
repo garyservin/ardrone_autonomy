@@ -73,6 +73,12 @@ catkin_package(
     include
   LIBRARIES
     ardrone_driver
+    pc_ardrone
+    avcodec
+    swscale
+    avutil
+    vlib
+    sdk
   CATKIN_DEPENDS
     message_runtime
     roscpp
@@ -138,11 +144,11 @@ target_link_libraries(ardrone_driver
 add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
 
 # build executable
-add_executable(ardrone_driver_node src/ardrone_driver_node.cpp)
-target_link_libraries(ardrone_driver_node ardrone_driver)
+#add_executable(ardrone_driver_node src/ardrone_driver_node.cpp)
+#target_link_libraries(ardrone_driver_node ardrone_driver)
 
 #install Rules
-install(TARGETS ardrone_driver ardrone_driver_node
+install(TARGETS ardrone_driver
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -157,3 +163,23 @@ install(DIRECTORY ${SDK} ${SDK}/FFMPEG/Includes ${SDK}/Soft/Common ${SDK}/Soft/L
   DESTINATION include/ardrone
   FILES_MATCHING PATTERN "*.h"
 )
+
+FILE(GLOB files "${CATKIN_DEVEL_PREFIX}/lib/ardrone/lib*.a")
+INSTALL(FILES
+  ${files}
+  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+)
+#install(FILES
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libavcodec.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libavdevice.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libavfilter.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libavformat.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libavutil.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libpc_ardrone.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libpc_ardrone_notool.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libsdk.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libswscale.a"
+#  "${CATKIN_DEVEL_PREFIX}/lib/ardrone/libvlib.a"
+#  DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#)
+
