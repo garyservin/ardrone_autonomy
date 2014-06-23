@@ -1,7 +1,6 @@
-#include "ardrone_driver.h"
-#include "teleop_twist.h"
-#include "video.h"
-#include <signal.h>
+#include <ardrone_autonomy/ardrone_driver.h>
+#include <ardrone_autonomy/teleop_twist.h>
+#include <ardrone_autonomy/video.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // class ARDroneDriver
@@ -248,7 +247,7 @@ void ARDroneDriver::configureDrone()
 
 
     #define NAVDATA_STRUCTS_INITIALIZE
-    #include "NavdataMessageDefinitions.h"
+    #include <ardrone_autonomy/NavdataMessageDefinitions.h>
     #undef NAVDATA_STRUCTS_INITIALIZE
 }
 
@@ -760,4 +759,32 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     navdata_pub.publish(legacynavdata_msg);
     imu_pub.publish(imu_msg);
+}
+
+// Load actual auto-generated code to publish full navdata
+#define NAVDATA_STRUCTS_SOURCE
+#include <ardrone_autonomy/NavdataMessageDefinitions.h>
+#undef NAVDATA_STRUCTS_SOURCE
+
+void ARDroneDriver::publish_tf()
+{
+    tf_base_front.stamp_ = ros::Time::now();
+    tf_base_bottom.stamp_ = ros::Time::now();
+    tf_broad.sendTransform(tf_base_front);
+    tf_broad.sendTransform(tf_base_bottom);
+}
+
+bool ARDroneDriver::imuReCalibCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
+{
+    if (!do_caliberation)
+    {
+        ROS_WARN("Automatic IMU Caliberation is not active. Activate first using `do_imu_caliberation` parameter");
+        return false;
+    }
+    else
+    {
+        ROS_WARN("Recaliberating IMU, please do not move the drone for a couple of seconds.");
+        resetCaliberation();
+        return true;
+    }
 }
