@@ -73,6 +73,7 @@ catkin_package(
     include
   LIBRARIES
     ardrone_driver
+    ardrone_sdk
     pc_ardrone
     avcodec
     swscale
@@ -122,17 +123,29 @@ include_directories(include)
 add_library(ardrone_driver
     src/ardrone_driver.cpp
     src/video.cpp
-    src/ardrone_sdk.cpp
     src/teleop_twist.cpp
 )
-
 target_link_libraries(ardrone_driver
-  pc_ardrone
-  avcodec
-  swscale
-  avutil
-  vlib
-  sdk
+#  pc_ardrone
+#  avcodec
+#  swscale
+#  avutil
+#  vlib
+#  sdk
+  ${Boost_LIBRARIES}
+  ${catkin_LIBRARIES}
+)
+
+add_library(ardrone_sdk
+    src/ardrone_sdk.cpp
+)
+target_link_libraries(ardrone_sdk
+#  pc_ardrone
+#  avcodec
+#  swscale
+#  avutil
+#  vlib
+#  sdk
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
 )
@@ -148,7 +161,7 @@ add_dependencies(ardrone_driver ardronelib ${PROJECT_NAME}_gencpp)
 #target_link_libraries(ardrone_driver_node ardrone_driver)
 
 #install Rules
-install(TARGETS ardrone_driver
+install(TARGETS ardrone_driver ardrone_sdk
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
