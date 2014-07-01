@@ -32,7 +32,7 @@ extern "C" {
         return (THREAD_RET) 0;
     }
     
-	 C_RESULT ardrone_tool_init_custom(void) 
+    C_RESULT ardrone_tool_init_custom(void) 
      {
      should_exit = 0;
      vp_os_mutex_init(&navdata_lock);
@@ -249,14 +249,14 @@ extern "C" {
         return (should_exit == 1);
     }
     
-	BEGIN_THREAD_TABLE
+/*	BEGIN_THREAD_TABLE
     THREAD_TABLE_ENTRY(video_stage, 31)
     THREAD_TABLE_ENTRY(update_ros, 43)
     THREAD_TABLE_ENTRY(video_recorder, 20)
     THREAD_TABLE_ENTRY(navdata_update, 31)
 //	THREAD_TABLE_ENTRY(ATcodec_Commands_Client, 43)
 	THREAD_TABLE_ENTRY(ardrone_control, 31)
-	END_THREAD_TABLE
+	END_THREAD_TABLE */
 
 	BEGIN_NAVDATA_HANDLER_TABLE
 	NAVDATA_HANDLER_TABLE_ENTRY(
