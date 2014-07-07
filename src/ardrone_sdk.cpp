@@ -2,6 +2,13 @@
 #include <ardrone_autonomy/video.h>
 #include <ardrone_autonomy/teleop_twist.h>
 
+#include <android/log.h>
+void alog(const char *msg, ...) {
+    va_list args;
+    va_start(args, msg);
+    __android_log_vprint(ANDROID_LOG_INFO, "ARDRONE_DRIVER_ANDROID", msg, args);
+    va_end(args);
+}
 
 navdata_unpacked_t *shared_raw_navdata;
 ros::Time shared_navdata_receive_time;
@@ -34,22 +41,27 @@ extern "C" {
     
     C_RESULT ardrone_tool_init_custom(void) 
      {
+    alog("ardrone_tool_init_custom:Enter");
      should_exit = 0;
      vp_os_mutex_init(&navdata_lock);
      vp_os_mutex_init(&video_lock);
      vp_os_mutex_init(&twist_lock);
 
+    alog("ardrone_tool_init_custom:1");
      rosDriver = new ARDroneDriver();
+    alog("ardrone_tool_init_custom:2");
      int _w, _h;
         
         if (IS_ARDRONE2)
         {
+    alog("ardrone_tool_init_custom:3");
             ardrone_application_default_config.video_codec = H264_360P_CODEC;
             _w = D2_STREAM_WIDTH;
             _h = D2_STREAM_HEIGHT;
         }
         else if (IS_ARDRONE1)
         {
+    alog("ardrone_tool_init_custom:4");
             ardrone_application_default_config.video_codec = UVLC_CODEC;
             _w = D1_STREAM_WIDTH;
             _h = D1_STREAM_HEIGHT;
@@ -57,13 +69,16 @@ extern "C" {
         }
         else
         {
+    alog("ardrone_tool_init_custom:5");
             printf("Something must be really wrong with the SDK!");
         }
+    alog("ardrone_tool_init_custom:6");
 
         ros::param::param("~looprate",looprate,50);
         ros::param::param("~realtime_navdata",realtime_navdata,false);
         ros::param::param("~realtime_video",realtime_video,false);
 
+    alog("ardrone_tool_init_custom:7");
         // SET SOME NON-STANDARD DEFAULT VALUES FOR THE DRIVER
         // THESE CAN BE OVERWRITTEN BY ROS PARAMETERS (below)
         ardrone_application_default_config.bitrate_ctrl_mode = VBC_MODE_DISABLED;
@@ -72,6 +87,7 @@ extern "C" {
             ardrone_application_default_config.max_bitrate = 4000;
         }
 
+    alog("ardrone_tool_init_custom:8");
         ardrone_application_default_config.navdata_options = NAVDATA_OPTION_FULL_MASK;        
         ardrone_application_default_config.video_channel = ZAP_CHANNEL_HORI;
         ardrone_application_default_config.control_level = (0 << CONTROL_LEVEL_COMBINED_YAW);
@@ -131,19 +147,23 @@ extern "C" {
 
         char buffer[MULTICONFIG_ID_SIZE+1];
         
+    alog("ardrone_tool_init_custom:9");
         sprintf(buffer,"-%s",usr_id);
         printf("Deleting Profile %s\n",buffer);
         ARDRONE_TOOL_CONFIGURATION_ADDEVENT (profile_id, buffer, NULL);
 
+    alog("ardrone_tool_init_custom:10");
         sprintf(buffer,"-%s",app_id);
         printf("Deleting Application %s\n",buffer);
         ARDRONE_TOOL_CONFIGURATION_ADDEVENT (application_id, buffer, NULL);
 
         // Now continue with the rest of the initialization
 
+    alog("ardrone_tool_init_custom:11");
         ardrone_tool_input_add(&teleop);
         uint8_t post_stages_index = 0;
 
+    alog("ardrone_tool_init_custom:12");
         //Alloc structs
         specific_parameters_t * params             = (specific_parameters_t *)vp_os_calloc(1,sizeof(specific_parameters_t));
         specific_stages_t * driver_pre_stages  = (specific_stages_t*)vp_os_calloc(1, sizeof(specific_stages_t));
@@ -195,19 +215,30 @@ extern "C" {
         params->needSetPriority = 1;
         params->priority = 31;
         // Using the provided threaded pipeline implementation from SDK
+    alog("ardrone_tool_init_custom:13");
         START_THREAD(video_stage, params);
+    alog("ardrone_tool_init_custom:14");
         video_stage_init();
+    alog("ardrone_tool_init_custom:15");
         if (ARDRONE_VERSION() >= 2)
         {
+    alog("ardrone_tool_init_custom:16");
             START_THREAD (video_recorder, NULL);
+    alog("ardrone_tool_init_custom:17");
             video_recorder_init ();
+    alog("ardrone_tool_init_custom:18");
             video_recorder_resume_thread();
+    alog("ardrone_tool_init_custom:19");
         }
         // Threads do not start automatically
+    alog("ardrone_tool_init_custom:20");
         video_stage_resume_thread();
+    alog("ardrone_tool_init_custom:21");
         ardrone_tool_set_refresh_time(25);
         //rosDriver->configure_drone();
+    alog("ardrone_tool_init_custom:22");
 		START_THREAD(update_ros, rosDriver);
+    alog("ardrone_tool_init_custom:23");
 		return C_OK;
 	}
     
