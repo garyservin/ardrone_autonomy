@@ -746,12 +746,14 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     const float mag_normalizer = sqrt( legacynavdata_msg.magX * legacynavdata_msg.magX + legacynavdata_msg.magY * legacynavdata_msg.magY + legacynavdata_msg.magZ * legacynavdata_msg.magZ );
 
     // TODO: Check if it is really needed that magnetometer message includes normalized value
-    mag_msg.vector.x = legacynavdata_msg.magX / mag_normalizer;
-    mag_msg.vector.y = legacynavdata_msg.magY / mag_normalizer;
-    mag_msg.vector.z = legacynavdata_msg.magZ / mag_normalizer;
-    mag_pub.publish(mag_msg);
-
-    if (fabs(mag_normalizer) < 1e-9f)
+    if (fabs(mag_normalizer) > 1e-9f)
+    {
+        mag_msg.vector.x = legacynavdata_msg.magX / mag_normalizer;
+        mag_msg.vector.y = legacynavdata_msg.magY / mag_normalizer;
+        mag_msg.vector.z = legacynavdata_msg.magZ / mag_normalizer;
+        mag_pub.publish(mag_msg);
+    }
+    else
     {
         ROS_WARN_THROTTLE(30, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
     }
