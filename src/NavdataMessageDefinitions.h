@@ -3462,6 +3462,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
     // JAC: Also publish GPS information using the NavSatFix message type
 
     gps_msg.header.stamp = received;
+    gps_msg.header.frame_id = droneFrameBase;
     gps_msg.latitude = navdata_gps_msg.latitude;
     gps_msg.longitude = navdata_gps_msg.longitude;
     gps_msg.altitude = navdata_gps_msg.elevation;
