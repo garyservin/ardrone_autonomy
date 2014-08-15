@@ -3459,16 +3459,22 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 		}
 
     //-------------------------
+    // JAC: Also publish GPS information using the NavSatFix message type
 
     gps_msg.header.stamp = received;
     gps_msg.latitude = navdata_gps_msg.latitude;
     gps_msg.longitude = navdata_gps_msg.longitude;
+    gps_msg.altitude = navdata_gps_msg.elevation;
 
+    // TODO: Calculate proper GPS status, probably based on navdata_gps_msg.gps_state
     if(gps_msg.latitude == 0) {
       gps_msg.status.status = -1;
     } else {
       gps_msg.status.status = 0;
     }
+
+    // TODO: Calculate proper GPS covariance - how?
+    gps_msg.position_covariance = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 
     pub_gps.publish(gps_msg);
 
