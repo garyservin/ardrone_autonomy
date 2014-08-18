@@ -3475,6 +3475,9 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
       gps_msg.status.status = 0;
     }
 
+    // Covariances are calculated based on the answer from
+    // http://answers.ros.org/question/10310/calculate-navsatfix-covariance/?answer=15197#post-id-15197
+    // taking into account the hdop parameter (http://en.wikipedia.org/wiki/Dilution_of_precision_(GPS))
     float horiz_error = navdata_gps_msg.hdop * navdata_gps_msg.ehpe;
     float horiz_cov = pow(horiz_error, 2);
     float alt_cov = pow(navdata_gps_msg.ehve, 2);
