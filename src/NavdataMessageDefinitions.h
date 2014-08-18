@@ -3475,6 +3475,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
     }
 
     // TODO: Calculate proper GPS covariance - how?
+    // - probably ehpe is the error. Calculate ehpe*ehpe
     gps_msg.position_covariance = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
 
     pub_gps.publish(gps_msg);
