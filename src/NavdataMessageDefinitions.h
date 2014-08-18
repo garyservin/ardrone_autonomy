@@ -3463,20 +3463,26 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 
     gps_msg.header.stamp = received;
     gps_msg.header.frame_id = droneFrameBase;
-    gps_msg.latitude = navdata_gps_msg.latitude;
-    gps_msg.longitude = navdata_gps_msg.longitude;
+    gps_msg.latitude = navdata_gps_msg.lat_fused;
+    gps_msg.longitude = navdata_gps_msg.long_fused;
     gps_msg.altitude = navdata_gps_msg.elevation;
+    gps_msg.status.service = 1; // GPS service
 
     // TODO: Calculate proper GPS status, probably based on navdata_gps_msg.gps_state
-    if(gps_msg.latitude == 0) {
+    if(gps_msg.lat_fused == 0) {
       gps_msg.status.status = -1;
     } else {
       gps_msg.status.status = 0;
     }
 
-    // TODO: Calculate proper GPS covariance - how?
-    // - probably ehpe is the error. Calculate ehpe*ehpe
-    gps_msg.position_covariance = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
+    // Covariances are calculated based on the answer from
+    // http://answers.ros.org/question/10310/calculate-navsatfix-covariance/?answer=15197#post-id-15197
+    // taking into account the hdop parameter (http://en.wikipedia.org/wiki/Dilution_of_precision_(GPS))
+    float horiz_error = navdata_gps_msg.hdop * navdata_gps_msg.ehpe;
+    float horiz_cov = pow(horiz_error, 2);
+    float alt_cov = pow(navdata_gps_msg.ehve, 2);
+    gps_msg.position_covariance = { horiz_cov, 0.0, 0.0, 0.0, horiz_cov, 0.0, 0.0, 0.0, alt_cov };
+    gps_msg.position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_APPROXIMATED;
 
     pub_gps.publish(gps_msg);
 
