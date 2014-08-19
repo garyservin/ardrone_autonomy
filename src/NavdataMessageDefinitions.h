@@ -3469,7 +3469,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
     gps_msg.status.service = 1; // GPS service
 
     // TODO: Calculate proper GPS status, probably based on navdata_gps_msg.gps_state
-    if(gps_msg.lat_fused == 0) {
+    if(navdata_gps_msg.lat_fused == 0) {
       gps_msg.status.status = -1;
     } else {
       gps_msg.status.status = 0;
