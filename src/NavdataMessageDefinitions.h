@@ -150,6 +150,7 @@
 
     // GSC: Enables twist, battery and state
 	bool enabled_ros_extra_sensors;
+	bool enabled_localization_hacks;
 
 	bool enabled_legacy_navdata;
 
@@ -419,11 +420,16 @@
 
         // GSC:
 		ros::param::param("~enable_ros_extra_sensors", enabled_ros_extra_sensors, false);
+		ros::param::param("~enable_localization_hacks", enabled_localization_hacks, false);
 		if(enabled_ros_extra_sensors)
 		{
 			twist_pub = node_handle.advertise<geometry_msgs::TwistWithCovarianceStamped>("ardrone/twist", NAVDATA_QUEUE_SIZE);
 			battery_pub = node_handle.advertise<std_msgs::Float32>("ardrone/battery", NAVDATA_QUEUE_SIZE);
 			state_pub = node_handle.advertise<std_msgs::UInt32>("ardrone/state", NAVDATA_QUEUE_SIZE);
+		    if(enabled_localization_hacks){
+			    twist_fake_pub = node_handle.advertise<geometry_msgs::TwistWithCovarianceStamped>("ardrone/fake_twist", NAVDATA_QUEUE_SIZE);
+			    imu_fake_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/fake_imu", 25);
+            }
 		}
 
 		//-------------------------

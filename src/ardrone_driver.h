@@ -91,6 +91,8 @@ private:
     ros::Publisher twist_pub;
     ros::Publisher battery_pub;
     ros::Publisher state_pub;
+    ros::Publisher twist_fake_pub;
+    ros::Publisher imu_fake_pub;
 
     tf::TransformBroadcaster tf_broad;
 

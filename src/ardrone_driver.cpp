@@ -796,6 +796,16 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
         // State
         state_msg.data = legacynavdata_msg.state;
         state_pub.publish(state_msg);
+
+        if(enabled_localization_hacks){
+            // GSC: Fake frame_id for localization
+            twist_msg.header.frame_id = "gps_base_link";
+            twist_fake_pub.publish(twist_msg);
+
+            // GSC: Fake frame_id for localization
+            imu_msg.header.frame_id = "gps_base_link";
+            imu_fake_pub.publish(imu_msg);
+        }
     }
 }
 
