@@ -1,7 +1,14 @@
-#include "ardrone_driver.h"
-#include "teleop_twist.h"
-#include "video.h"
-#include <signal.h>
+#include <ardrone_autonomy/ardrone_driver.h>
+#include <ardrone_autonomy/teleop_twist.h>
+#include <ardrone_autonomy/video.h>
+
+#include <android/log.h>
+void blog(const char *msg, ...) {
+    va_list args;
+    va_start(args, msg);
+    __android_log_vprint(ANDROID_LOG_INFO, "ARDRONE_DRIVER_OBJ_ANDROID", msg, args);
+    va_end(args);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // class ARDroneDriver
@@ -12,22 +19,38 @@ ARDroneDriver::ARDroneDriver()
       // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
       initialized_navdata_publishers(false)
 {
+    blog("ArDroneDriver(): Enter");
     inited = false;
     last_frame_id = -1;
     last_navdata_id = -1;
+    blog("ArDroneDriver(): Before subs and pubs");
     cmd_vel_sub = node_handle.subscribe("cmd_vel", 1, &cmdVelCallback);
+    blog("ArDroneDriver(): sp1");
     takeoff_sub = node_handle.subscribe("ardrone/takeoff", 1, &takeoffCallback);
+    blog("ArDroneDriver(): sp2");
     reset_sub = node_handle.subscribe("ardrone/reset", 1, &resetCallback);
+    blog("ArDroneDriver(): sp3");
     land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
-    image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
-    hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
-    vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+    blog("ArDroneDriver(): sp4");
+    // NOTE: Currently crashing here
+    // image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
+    blog("ArDroneDriver(): sp5");
+    // hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
+    blog("ArDroneDriver(): sp6");
+    // vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+    blog("ArDroneDriver(): sp7");
     toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
+    blog("ArDroneDriver(): sp8");
     setCamChannel_service = node_handle.advertiseService("ardrone/setcamchannel",setCamChannelCallback );
+    blog("ArDroneDriver(): sp9");
     setLedAnimation_service = node_handle.advertiseService("ardrone/setledanimation", setLedAnimationCallback);
+    blog("ArDroneDriver(): sp10");
     flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
+    blog("ArDroneDriver(): sp11");
     setFlightAnimation_service = node_handle.advertiseService("ardrone/setflightanimation", setFlightAnimationCallback);
+    blog("ArDroneDriver(): sp12");
     setRecord_service = node_handle.advertiseService("ardrone/setrecord", setRecordCallback );
+    blog("ArDroneDriver(): After pubs and subs");
 
     /*
         To be honest, I am not sure why advertising a service using class members should be this complicated!
@@ -35,6 +58,7 @@ ARDroneDriver::ARDroneDriver()
     */
     imuReCalib_service = node_handle.advertiseService<std_srvs::Empty::Request, std_srvs::Empty::Response>
             ("ardrone/imu_recalib", boost::bind(&ARDroneDriver::imuReCalibCallback, this, _1, _2));
+    blog("ArDroneDriver(): 2");
 
     //	setEnemyColor_service = node_handle.advertiseService("/ardrone/setenemycolor", setEnemyColorCallback);
     //	setHullType_service = node_handle.advertiseService("/ardrone/sethulltype", setHullTypeCallback);
@@ -44,10 +68,12 @@ ARDroneDriver::ARDroneDriver()
     droneFrameIMU = droneFrameId + "_imu";
     droneFrameFrontCam = droneFrameId + "_frontcam";
     droneFrameBottomCam = droneFrameId + "_bottomcam";
+    blog("ArDroneDriver(): 3");
 
     drone_root_frame = (ros::param::get("~root_frame", drone_root_frame)) ? drone_root_frame : ROOT_FRAME_BASE;
     drone_root_frame = drone_root_frame % ROOT_FRAME_NUM;
     ROS_INFO("Root Frame is: %d", drone_root_frame);
+    blog("ArDroneDriver(): 4");
 
     // Fill constant parts of IMU Message
     // If no rosparam is set then the default value of 0.0 will be assigned to all covariance values
@@ -61,6 +87,7 @@ ARDroneDriver::ARDroneDriver()
     readCovParams("~cov/imu_la", imu_msg.linear_acceleration_covariance);
     readCovParams("~cov/imu_av", imu_msg.angular_velocity_covariance);
     readCovParams("~cov/imu_or", imu_msg.orientation_covariance);
+    blog("ArDroneDriver(): 5");
 
     // Caliberation
     max_num_samples = 50;
@@ -69,10 +96,12 @@ ARDroneDriver::ARDroneDriver()
         resetCaliberation();
         ROS_WARN("Automatic IMU Caliberation is active.");
     }
+    blog("ArDroneDriver(): 6");
 
     // Camera Info Manager
     cinfo_hori_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/front"), "ardrone_front");
     cinfo_vert_ = new camera_info_manager::CameraInfoManager(ros::NodeHandle("ardrone/bottom"), "ardrone_bottom");
+    blog("ArDroneDriver(): 7");
 
     // TF Stuff
 
@@ -85,6 +114,7 @@ ARDroneDriver::ARDroneDriver()
                     tf::Vector3(0.21, 0.0, 0.0)),
                 ros::Time::now(), droneFrameBase, droneFrameFrontCam
                 );
+    blog("ArDroneDriver(): 8");
 
 
     // Bottom Cam to Base (Bad Assumption: No translation from IMU and Base)
@@ -95,6 +125,7 @@ ARDroneDriver::ARDroneDriver()
                     tf::Vector3(0.0, -0.02, 0.0)),
                 ros::Time::now(), droneFrameBase, droneFrameBottomCam
                 );
+    blog("ArDroneDriver(): 9");
 
     // Changing the root for TF if needed
     if (drone_root_frame == ROOT_FRAME_FRONT)
@@ -107,7 +138,7 @@ ARDroneDriver::ARDroneDriver()
         tf_base_bottom.setData(tf_base_bottom.inverse());
         tf_base_bottom.child_frame_id_.swap(tf_base_bottom.frame_id_);
     }
-
+    blog("ArDroneDriver(): 10");
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -248,7 +279,7 @@ void ARDroneDriver::configureDrone()
 
 
     #define NAVDATA_STRUCTS_INITIALIZE
-    #include "NavdataMessageDefinitions.h"
+    #include <ardrone_autonomy/NavdataMessageDefinitions.h>
     #undef NAVDATA_STRUCTS_INITIALIZE
 }
 
@@ -327,6 +358,9 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
+    // JAC: HACK
+    return;
+
     if (
             (image_pub.getNumSubscribers() == 0) &&
             (hori_pub.getNumSubscribers() == 0) &&
@@ -806,5 +840,33 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
             imu_msg.header.frame_id = "gps_base_link";
             imu_fake_pub.publish(imu_msg);
         }
+    }
+}
+
+// Load actual auto-generated code to publish full navdata
+#define NAVDATA_STRUCTS_SOURCE
+#include <ardrone_autonomy/NavdataMessageDefinitions.h>
+#undef NAVDATA_STRUCTS_SOURCE
+
+void ARDroneDriver::publish_tf()
+{
+    tf_base_front.stamp_ = ros::Time::now();
+    tf_base_bottom.stamp_ = ros::Time::now();
+    tf_broad.sendTransform(tf_base_front);
+    tf_broad.sendTransform(tf_base_bottom);
+}
+
+bool ARDroneDriver::imuReCalibCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Response &response)
+{
+    if (!do_caliberation)
+    {
+        ROS_WARN("Automatic IMU Caliberation is not active. Activate first using `do_imu_caliberation` parameter");
+        return false;
+    }
+    else
+    {
+        ROS_WARN("Recaliberating IMU, please do not move the drone for a couple of seconds.");
+        resetCaliberation();
+        return true;
     }
 }
