@@ -635,7 +635,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     }
 
-    if (!enabled_legacy_navdata || ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0)))
+    if (!enabled_legacy_navdata || ((navdata_pub.getNumSubscribers() == 0) && (imu_pub.getNumSubscribers() == 0) && (mag_pub.getNumSubscribers() == 0)) && !enabled_ros_extra_sensors)
         return; // why bother, no one is listening.
 
     legacynavdata_msg.header.stamp = navdata_receive_time;
@@ -760,6 +760,53 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     navdata_pub.publish(legacynavdata_msg);
     imu_pub.publish(imu_msg);
+
+    if(enabled_ros_extra_sensors){
+        // GSC:
+        // Twist
+        twist_msg.header.frame_id = droneFrameBase;
+        twist_msg.header.stamp = navdata_receive_time;
+
+        twist_msg.twist.twist.linear.x = legacynavdata_msg.vx / 1000;
+        twist_msg.twist.twist.linear.y = legacynavdata_msg.vy / 1000;
+        twist_msg.twist.twist.linear.z = legacynavdata_msg.vz / 1000;
+        twist_msg.twist.twist.angular.x = 0;
+        twist_msg.twist.twist.angular.y = 0;
+        twist_msg.twist.twist.angular.z = 0;
+
+        // JAC: Plotting values from a sample flight, I can see the values
+        // go from about -1.2 to 3.6 m/s. Thus, I'm going to assign the covariance
+        // as 0.5 m/s * 0.5 m/s = 0.25 (m/s)^2
+        //
+        // This is a 6 by 6 matrix so:
+        // 0 is 0,0 --> x,x
+        twist_msg.twist.covariance[0]  = 0.25;
+        // 7 is 1,1 --> y,y
+        twist_msg.twist.covariance[7]  = 0.25;
+        // 14 is 2,2 --> z,z
+        // NOTE that vel is always 0 in z
+        twist_msg.twist.covariance[14] = 9999.9;
+
+        twist_pub.publish(twist_msg);
+
+        // Battery
+        battery_msg.data = legacynavdata_msg.batteryPercent;
+        battery_pub.publish(battery_msg);
+
+        // State
+        state_msg.data = legacynavdata_msg.state;
+        state_pub.publish(state_msg);
+
+        if(enabled_localization_hacks){
+            // GSC: Fake frame_id for localization
+            twist_msg.header.frame_id = "gps_base_link";
+            twist_fake_pub.publish(twist_msg);
+
+            // GSC: Fake frame_id for localization
+            imu_msg.header.frame_id = "gps_base_link";
+            imu_fake_pub.publish(imu_msg);
+        }
+    }
 }
 
 // Load actual auto-generated code to publish full navdata
