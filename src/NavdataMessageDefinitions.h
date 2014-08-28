@@ -135,11 +135,12 @@
 	bool enabled_navdata_zimmu_3000;
 	ardrone_autonomy::navdata_zimmu_3000 navdata_zimmu_3000_msg;
 	ros::Publisher pub_navdata_gps;
-	ros::Publisher pub_gps;
 	bool enabled_navdata_gps;
 	ardrone_autonomy::navdata_gps navdata_gps_msg;	
 	ardrone_autonomy::navdata_gps_channel navdata_gps_channel_msg;	
-  sensor_msgs::NavSatFix gps_msg;
+	bool enabled_gps;
+	ros::Publisher pub_gps;
+	sensor_msgs::NavSatFix gps_msg;
 	ros::Publisher pub_navdata_host;
 	bool enabled_navdata_host;
 	ardrone_autonomy::navdata_host navdata_host_msg;	
@@ -395,7 +396,6 @@
 		if(enabled_navdata_gps)
 		{
 			pub_navdata_gps = node_handle.advertise<ardrone_autonomy::navdata_gps>("ardrone/navdata_gps", NAVDATA_QUEUE_SIZE);
-      pub_gps = node_handle.advertise<sensor_msgs::NavSatFix>("ardrone/gps", 10);
 		}
 
 		//-------------------------
@@ -412,6 +412,14 @@
 		if(enabled_navdata_camera_settings)
 		{
 			pub_navdata_camera_settings = node_handle.advertise<ardrone_autonomy::navdata_camera_settings>("ardrone/navdata_camera_settings", NAVDATA_QUEUE_SIZE);
+		}
+
+		//-------------------------
+
+		ros::param::param("~enable_gps", enabled_gps, false);
+		if(enabled_gps)
+		{
+			pub_gps = node_handle.advertise<sensor_msgs::NavSatFix>("ardrone/gps", 10);
 		}
 
 		//-------------------------
@@ -3458,6 +3466,12 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 
 		}
 
+		//-------------------------
+
+	}
+
+    if(enabled_gps && pub_gps.getNumSubscribers()>0)
+    {
     //-------------------------
     // JAC: Also publish GPS information using the NavSatFix message type
 
