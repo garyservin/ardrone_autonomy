@@ -18,6 +18,12 @@ class ARDroneDriver;
 #include <ardrone_tool/ardrone_version.h>
 #include <ardrone_tool/ardrone_tool.h>
 
+// GSC:
+#include <geometry_msgs/TwistWithCovarianceStamped.h>
+#include <sensor_msgs/Range.h>
+#include <geometry_msgs/PointStamped.h>
+
+
 // Load auto-generated include files for full navdata
 #define NAVDATA_STRUCTS_INCLUDES
 #include <ardrone_autonomy/NavdataMessageDefinitions.h>
@@ -81,6 +87,13 @@ private:
     ros::Publisher imu_pub;
     ros::Publisher mag_pub;
 
+    // GSC:
+    ros::Publisher twist_pub;
+    ros::Publisher battery_pub;
+    ros::Publisher state_pub;
+    ros::Publisher twist_fake_pub;
+    ros::Publisher imu_fake_pub;
+
     tf::TransformBroadcaster tf_broad;
 
 	//ros::Subscriber toggleCam_sub;
@@ -132,6 +145,11 @@ private:
     sensor_msgs::Imu imu_msg;
     geometry_msgs::Vector3Stamped mag_msg;
     ardrone_autonomy::Navdata legacynavdata_msg;
+
+    // GSC:
+    geometry_msgs::TwistWithCovarianceStamped twist_msg;
+    std_msgs::Float32 battery_msg;
+    std_msgs::UInt32 state_msg;
 
     // Manual IMU caliberation
     bool do_caliberation;
