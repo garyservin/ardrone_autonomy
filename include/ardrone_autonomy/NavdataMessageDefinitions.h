@@ -3513,7 +3513,9 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
     float horiz_error = navdata_gps_msg.hdop * navdata_gps_msg.ehpe;
     float horiz_cov = pow(horiz_error, 2);
     float alt_cov = pow(navdata_gps_msg.ehve, 2);
-    gps_msg.position_covariance = { horiz_cov, 0.0, 0.0, 0.0, horiz_cov, 0.0, 0.0, 0.0, alt_cov };
+    gps_msg.position_covariance[0] = horiz_cov;
+    gps_msg.position_covariance[4] = horiz_cov;
+    gps_msg.position_covariance[8] = alt_cov;
     gps_msg.position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_APPROXIMATED;
 
     pub_gps.publish(gps_msg);
