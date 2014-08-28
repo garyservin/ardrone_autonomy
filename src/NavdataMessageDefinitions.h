@@ -148,6 +148,9 @@
 	bool enabled_navdata_camera_settings;
 	ardrone_autonomy::navdata_camera_settings navdata_camera_settings_msg;	
 
+    // GSC: Enables twist, battery and state
+	bool enabled_ros_extra_sensors;
+
 	bool enabled_legacy_navdata;
 
 	bool initialized_navdata_publishers;
@@ -412,6 +415,15 @@
 		if(enabled_navdata_camera_settings)
 		{
 			pub_navdata_camera_settings = node_handle.advertise<ardrone_autonomy::navdata_camera_settings>("ardrone/navdata_camera_settings", NAVDATA_QUEUE_SIZE);
+		}
+
+        // GSC:
+		ros::param::param("~enable_ros_extra_sensors", enabled_ros_extra_sensors, false);
+		if(enabled_ros_extra_sensors)
+		{
+			twist_pub = node_handle.advertise<geometry_msgs::TwistWithCovarianceStamped>("ardrone/twist", NAVDATA_QUEUE_SIZE);
+			battery_pub = node_handle.advertise<std_msgs::Float32>("ardrone/battery", NAVDATA_QUEUE_SIZE);
+			state_pub = node_handle.advertise<std_msgs::UInt32>("ardrone/state", NAVDATA_QUEUE_SIZE);
 		}
 
 		//-------------------------
@@ -3129,7 +3141,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 
 		//-------------------------
 
-		if(enabled_navdata_gps && pub_navdata_gps.getNumSubscribers()>0)
+		if(enabled_navdata_gps && pub_navdata_gps.getNumSubscribers()>0 || enabled_gps)
 		{
 			navdata_gps_msg.header.stamp = received;
 			navdata_gps_msg.header.frame_id = droneFrameBase;
