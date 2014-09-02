@@ -3488,7 +3488,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 
 	}
 
-    if(enabled_gps && pub_gps.getNumSubscribers()>0)
+    if(enabled_gps && pub_gps.getNumSubscribers()>0 && gps_counter_ == 0)
     {
     //-------------------------
     // JAC: Also publish GPS information using the NavSatFix message type
@@ -3516,11 +3516,13 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
     gps_msg.position_covariance = { horiz_cov, 0.0, 0.0, 0.0, horiz_cov, 0.0, 0.0, 0.0, alt_cov };
     gps_msg.position_covariance_type = sensor_msgs::NavSatFix::COVARIANCE_TYPE_APPROXIMATED;
 
+    // GSC : Throttle GPS to ~5Hz
     pub_gps.publish(gps_msg);
 
 		//-------------------------
 
 	}
+    gps_counter_ = (gps_counter_ + 1) % 10; // (looprate / 5) Hz
 }
 #endif
 
