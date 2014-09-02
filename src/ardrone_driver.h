@@ -162,6 +162,10 @@ private:
     std::vector< std::vector<double> > gyro_samples;
     std::vector< std::vector<double> > vel_samples;
 
+    // For throttling battery, state and gps
+    int counter_;
+    int gps_counter_;
+
 };
 
 #endif

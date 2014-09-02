@@ -108,6 +108,9 @@ ARDroneDriver::ARDroneDriver()
         tf_base_bottom.child_frame_id_.swap(tf_base_bottom.frame_id_);
     }
 
+    // GSC: For throttle battery, state and gps
+    counter_ = 0;
+
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -791,11 +794,17 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
         // Battery
         battery_msg.data = legacynavdata_msg.batteryPercent;
-        battery_pub.publish(battery_msg);
 
         // State
         state_msg.data = legacynavdata_msg.state;
-        state_pub.publish(state_msg);
+
+        if (counter_ == 0)
+        {
+            battery_pub.publish(battery_msg);
+            state_pub.publish(state_msg);
+        }
+
+        counter_ = (counter_ + 1) % 50; // (looprate / 50) Hz
 
         if(enabled_localization_hacks){
             // GSC: Fake frame_id for localization
