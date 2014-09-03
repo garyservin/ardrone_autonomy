@@ -14,6 +14,7 @@ void blog(const char *msg, ...) {
 // class ARDroneDriver
 ////////////////////////////////////////////////////////////////////////////////
 
+int counter_;
 ARDroneDriver::ARDroneDriver()
     : image_transport(node_handle),
       // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?

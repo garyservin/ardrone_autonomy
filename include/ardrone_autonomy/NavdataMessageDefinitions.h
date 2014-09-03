@@ -152,6 +152,8 @@
 	bool enabled_ros_extra_sensors;
 	bool enabled_localization_hacks;
 
+    int gps_counter_;
+
 	bool enabled_legacy_navdata;
 
 	bool initialized_navdata_publishers;
