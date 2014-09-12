@@ -75,10 +75,11 @@ private:
 	ros::Subscriber takeoff_sub;
 	ros::Subscriber reset_sub;
 	ros::Subscriber land_sub;
-	image_transport::ImageTransport image_transport;
-	image_transport::CameraPublisher image_pub;
-    image_transport::CameraPublisher hori_pub;
-	image_transport::CameraPublisher vert_pub;
+	//image_transport::ImageTransport image_transport;
+	// image_transport::CameraPublisher image_pub;
+  ros::Publisher image_pub;
+  //image_transport::CameraPublisher hori_pub;
+	//image_transport::CameraPublisher vert_pub;
 
     camera_info_manager::CameraInfoManager *cinfo_hori_;
     camera_info_manager::CameraInfoManager *cinfo_vert_;

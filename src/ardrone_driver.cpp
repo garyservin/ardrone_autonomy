@@ -16,9 +16,8 @@ void blog(const char *msg, ...) {
 
 int counter_;
 ARDroneDriver::ARDroneDriver()
-    : image_transport(node_handle),
-      // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
-      initialized_navdata_publishers(false)
+    // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
+    : initialized_navdata_publishers(false)
 {
     blog("ArDroneDriver(): Enter");
     inited = false;
@@ -34,11 +33,12 @@ ARDroneDriver::ARDroneDriver()
     land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
     blog("ArDroneDriver(): sp4");
     // NOTE: Currently crashing here
-    // image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
+    image_pub = node_handle.advertise<sensor_msgs::Image>("ardrone/image_raw", 10);
+//    image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     blog("ArDroneDriver(): sp5");
-    // hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
+//    hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
     blog("ArDroneDriver(): sp6");
-    // vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+//    vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
     blog("ArDroneDriver(): sp7");
     toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
     blog("ArDroneDriver(): sp8");
@@ -364,13 +364,8 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
-    // JAC: HACK
-    return;
-
     if (
-            (image_pub.getNumSubscribers() == 0) &&
-            (hori_pub.getNumSubscribers() == 0) &&
-            (vert_pub.getNumSubscribers() == 0)
+            (image_pub.getNumSubscribers() == 0)
        ) return;
 
     // Camera Info (NO PIP)
@@ -437,8 +432,9 @@ void ARDroneDriver::publish_video()
             cinfo_msg_hori.width = D1_STREAM_WIDTH;
             cinfo_msg_hori.height = D1_STREAM_HEIGHT;
 
-            image_pub.publish(image_msg, cinfo_msg_hori);
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // image_pub.publish(image_msg, cinfo_msg_hori);
+            image_pub.publish(image_msg);
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
         }
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
@@ -464,8 +460,9 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH;
             cinfo_msg_vert.height = D1_VERTSTREAM_HEIGHT;
-            image_pub.publish(image_msg, cinfo_msg_vert);
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // image_pub.publish(image_msg, cinfo_msg_vert);
+            image_pub.publish(image_msg);
+       //     vert_pub.publish(image_msg, cinfo_msg_vert);
         }
         else if (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT)
         {
@@ -494,7 +491,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_hori.width = D1_STREAM_WIDTH - D1_MODE2_PIP_WIDTH;
             cinfo_msg_hori.height = D1_STREAM_HEIGHT;
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
 
             //Bottom
             image_msg.width = D1_MODE2_PIP_WIDTH;
@@ -516,7 +513,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_vert.width = D1_MODE2_PIP_WIDTH;
             cinfo_msg_vert.height = D1_MODE2_PIP_HEIGHT;
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // vert_pub.publish(image_msg, cinfo_msg_vert);
         }
         else if (cam_state == ZAP_CHANNEL_LARGE_VERT_SMALL_HORI)
         {
@@ -545,7 +542,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH - D1_MODE3_PIP_WIDTH;
             cinfo_msg_vert.height = D1_VERTSTREAM_HEIGHT;
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // vert_pub.publish(image_msg, cinfo_msg_vert);
 
             //Front
             image_msg.width = D1_MODE3_PIP_WIDTH;
@@ -566,7 +563,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_hori.width = D1_MODE3_PIP_WIDTH;
             cinfo_msg_hori.height = D1_MODE3_PIP_HEIGHT;
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
         }
     }
 
@@ -616,8 +613,9 @@ void ARDroneDriver::publish_video()
             */
             cinfo_msg_hori.width = D2_STREAM_WIDTH;
             cinfo_msg_hori.height = D2_STREAM_HEIGHT;
-            image_pub.publish(image_msg, cinfo_msg_hori); // /ardrone
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // image_pub.publish(image_msg, cinfo_msg_hori); // /ardrone
+            image_pub.publish(image_msg); // /ardrone
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
         }
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
@@ -626,8 +624,9 @@ void ARDroneDriver::publish_video()
             */
             cinfo_msg_vert.width = D2_STREAM_WIDTH;
             cinfo_msg_vert.height = D2_STREAM_HEIGHT;
-            image_pub.publish(image_msg, cinfo_msg_vert); // /ardrone
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // image_pub.publish(image_msg, cinfo_msg_vert); // /ardrone
+            image_pub.publish(image_msg); // /ardrone
+            // vert_pub.publish(image_msg, cinfo_msg_vert);
         }
     }
 

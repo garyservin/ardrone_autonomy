@@ -132,6 +132,8 @@ add_library(ardrone_driver
     src/ardrone_driver.cpp
     src/video.cpp
     src/teleop_twist.cpp
+    src/opengl_stage.c
+    src/opengl_shader.c
 )
 target_link_libraries(ardrone_driver
 #  pc_ardrone
@@ -140,6 +142,7 @@ target_link_libraries(ardrone_driver
 #  avutil
 #  vlib
 #  sdk
+  GLESv2
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
 )
@@ -154,6 +157,7 @@ target_link_libraries(ardrone_sdk
 #  avutil
 #  vlib
 #  sdk
+  GLESv2
   ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
 )

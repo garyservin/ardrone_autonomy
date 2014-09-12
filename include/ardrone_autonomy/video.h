@@ -1,6 +1,8 @@
 #ifndef _VIDEO_H_
 #define _VIDEO_H_
 
+// #include <ardrone_autonomy/opengl_stage.h>
+// #include <ardrone_autonomy/opengl_shader.h>
 #include <ardrone_autonomy/ardrone_sdk.h>
 #include <ardrone_autonomy/ardrone_driver.h>
 

@@ -1,6 +1,7 @@
 #include <ardrone_autonomy/ardrone_sdk.h>
 #include <ardrone_autonomy/video.h>
 #include <ardrone_autonomy/teleop_twist.h>
+#include <ardrone_autonomy/opengl_stage.h>
 
 #include <android/log.h>
 void alog(const char *msg, ...) {
@@ -29,7 +30,7 @@ int32_t should_exit;
 
 extern "C" {
     vp_stages_latency_estimation_config_t vlat;
-
+    opengl_video_stage_config_t ovsc;
 
     DEFINE_THREAD_ROUTINE(update_ros, data)
     {
@@ -38,7 +39,7 @@ extern "C" {
         driver->run();
         return (THREAD_RET) 0;
     }
-    
+
     C_RESULT ardrone_tool_init_custom(void) 
      {
     alog("ardrone_tool_init_custom:Enter");
@@ -51,7 +52,7 @@ extern "C" {
      rosDriver = new ARDroneDriver();
     alog("ardrone_tool_init_custom:2");
      int _w, _h;
-        
+
         if (IS_ARDRONE2)
         {
     alog("ardrone_tool_init_custom:3");
@@ -186,12 +187,32 @@ extern "C" {
         out_picture->y_line_size   = _w * 3;
         out_picture->cb_line_size  = 0;
         out_picture->cr_line_size  = 0;
-        
+
         //Alloc the lists
         driver_pre_stages->stages_list  = NULL;
         driver_post_stages->stages_list = (vp_api_io_stage_t*)vp_os_calloc(NB_DRIVER_POST_STAGES,sizeof(vp_api_io_stage_t));
-        
+
         //Fill the POST-stages------------------------------------------------------
+        // JAC: Enabling video on Android with LCD instead of SDL
+        // Following ARDrone Android Example: Examples/Android/trunk/FreeFlight2/jni/API/app.c
+
+        vp_os_memset (&vlat, 0x0, sizeof (vlat));
+        vlat.state = (vp_stages_latency_estimation_state)0;
+        vlat.last_decoded_frame_info= (vlib_stage_decoding_config_t *)&vec;
+        driver_post_stages->stages_list[post_stages_index].name    = "LatencyEst";
+        driver_post_stages->stages_list[post_stages_index].type  = VP_API_FILTER_DECODER;
+        driver_post_stages->stages_list[post_stages_index].cfg   = (void *)&vlat;
+        driver_post_stages->stages_list[post_stages_index++].funcs = vp_stages_latency_estimation_funcs;
+
+        vp_os_memset (&ovsc, 0x0, sizeof (ovsc));
+        ovsc.video_decoder = &vec;
+        driver_post_stages->stages_list[post_stages_index].name    = "ExtractData";
+        driver_post_stages->stages_list[post_stages_index].type  = VP_API_OUTPUT_LCD;
+        driver_post_stages->stages_list[post_stages_index].cfg   = (void *)&ovsc;
+        driver_post_stages->stages_list[post_stages_index++].funcs = opengl_video_stage_funcs;
+
+
+        /* Original code block (including commented out parts) 
 //        vp_os_memset (&vlat, 0x0, sizeof (vlat));
 //        vlat.state = (vp_stages_latency_estimation_state) 0;
 //        //vlat.last_decoded_frame_info= (void *)&vec;
@@ -199,15 +220,16 @@ extern "C" {
 //        driver_post_stages->stages_list[post_stages_index].type    = VP_API_FILTER_DECODER;
 //        driver_post_stages->stages_list[post_stages_index].cfg     = (void *)&vlat;
 //        driver_post_stages->stages_list[post_stages_index++].funcs = vp_stages_latency_estimation_funcs;
-    
+
         driver_post_stages->stages_list[post_stages_index].name    = "ExtractData";
         driver_post_stages->stages_list[post_stages_index].type    = VP_API_OUTPUT_SDL;
         driver_post_stages->stages_list[post_stages_index].cfg     = NULL;
         driver_post_stages->stages_list[post_stages_index++].funcs   = vp_stages_export_funcs;
-        
+        */
+
         driver_pre_stages->length  = 0;
         driver_post_stages->length = post_stages_index;
-        
+
         params->in_pic = in_picture;
         params->out_pic = out_picture;
         params->pre_processing_stages_list  = driver_pre_stages;
