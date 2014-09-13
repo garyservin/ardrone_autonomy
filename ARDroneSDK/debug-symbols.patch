@@ -1,0 +1,12 @@
+diff --git a/ARDroneLib/Soft/Build/config.makefile b/ARDroneLib/Soft/Build/config.makefile
+index eb257e2..45e4ed3 100644
+--- a/ARDroneLib/Soft/Build/config.makefile
++++ b/ARDroneLib/Soft/Build/config.makefile
+@@ -126,6 +126,7 @@ ifdef PC_TARGET
+   endif
+ 
+   ifeq ("$(USE_ANDROID)","yes")
++          GENERIC_CFLAGS+=-g
+      SDK_FLAGS+="USE_ANDROID=yes"
+      SDK_FLAGS+="TOOLCHAIN_VERSION=arm-linux-androideabi-4.6"
+      SDK_FLAGS+="NDK_PLATFORM_VERSION=android-8"

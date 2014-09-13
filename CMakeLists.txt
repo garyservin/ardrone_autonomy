@@ -104,6 +104,7 @@ externalproject_add(ardronelib
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	PATCH_COMMAND
 		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone_lib.patch &&
+		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/debug-symbols.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-common-gps.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-keys-gps.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-file-gps.patch
