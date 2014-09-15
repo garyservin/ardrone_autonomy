@@ -93,6 +93,8 @@ private:
     ros::Publisher state_pub;
     ros::Publisher twist_fake_pub;
     ros::Publisher imu_fake_pub;
+    ros::Publisher alt_pub;
+    ros::Publisher pressure_pub;
 
     tf::TransformBroadcaster tf_broad;
 
@@ -150,6 +152,8 @@ private:
     geometry_msgs::TwistWithCovarianceStamped twist_msg;
     std_msgs::Float32 battery_msg;
     std_msgs::UInt32 state_msg;
+    sensor_msgs::Range sonar_msg;
+    geometry_msgs::PointStamped height_msg;
 
     // Manual IMU caliberation
     bool do_caliberation;
@@ -165,6 +169,8 @@ private:
     // For throttling battery, state and gps
     int counter_;
     int gps_counter_;
+    bool first_time_pressure_;
+    unsigned int zero_pressure;
 
 };
 
