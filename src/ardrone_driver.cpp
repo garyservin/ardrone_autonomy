@@ -149,6 +149,14 @@ ARDroneDriver::ARDroneDriver()
     // JAC: For hacked throttling of video images to 1Hz
     video_counter_ = 0;
 
+    // GSC: Fill sonar message static part
+    sonar_msg.radiation_type = sensor_msgs::Range::ULTRASOUND;
+    sonar_msg.field_of_view = 0.6958131978512;
+    sonar_msg.min_range = 0.0;
+    sonar_msg.max_range = 3.0;
+
+    zero_pressure = 101325;
+
 }
 
 ARDroneDriver::~ARDroneDriver()
@@ -819,6 +827,26 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
     navdata_pub.publish(legacynavdata_msg);
     imu_pub.publish(imu_msg);
+
+    // Sonar altitude sensor
+    sonar_msg.header.stamp = navdata_receive_time;
+    sonar_msg.header.frame_id = "sonar_link";
+    sonar_msg.range = legacynavdata_msg.altd/1000.0;
+
+    alt_pub.publish(sonar_msg);
+
+    // Pressure height
+    if (first_time_pressure_){
+        zero_pressure = legacynavdata_msg.pressure;
+        first_time_pressure_ = false;
+    }
+
+    height_msg.header.stamp = navdata_receive_time;
+    height_msg.header.frame_id = droneFrameBase;
+
+    //height_msg.point.z = 1 - pow(legacynavdata_msg.pressure/zero_pressure, 0.190263096) / 0.0000225577;
+
+    pressure_pub.publish(height_msg);
 
     if(enabled_ros_extra_sensors){
         // GSC:
