@@ -170,6 +170,8 @@
 			navdata_pub = node_handle.advertise<ardrone_autonomy::Navdata>("ardrone/navdata", 25);
 			imu_pub = node_handle.advertise<sensor_msgs::Imu>("ardrone/imu", 25);
 			mag_pub = node_handle.advertise<geometry_msgs::Vector3Stamped>("ardrone/mag", 25);
+			alt_pub = node_handle.advertise<sensor_msgs::Range>("ardrone/sonar_height", 25);
+			pressure_pub = node_handle.advertise<geometry_msgs::PointStamped>("ardrone/pressure_height", 25);
 		}
 
 		//-------------------------
