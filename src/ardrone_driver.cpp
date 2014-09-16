@@ -385,11 +385,11 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 void ARDroneDriver::publish_video()
 {
     /*
-    // JAC: I think this doesn't get updated when publisher get registered
+    // JAC: I think this doesn't get updated when publishers get registered
     // so disabling to force video publishing for now
     //
     if ((image_pub.getNumSubscribers() == 0)) {
-      ROS_WARN("No subscrivers for video");
+      ROS_WARN("No subscribers for video");
       blog("No subscribers for video");
       return;
     }
