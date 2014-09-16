@@ -844,7 +844,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
     height_msg.header.stamp = navdata_receive_time;
     height_msg.header.frame_id = droneFrameBase;
 
-    //height_msg.point.z = 1 - pow(legacynavdata_msg.pressure/zero_pressure, 0.190263096) / 0.0000225577;
+    height_msg.point.z = 1 - pow(legacynavdata_msg.pressure/zero_pressure, 0.190263096) / 0.0000225577;
 
     pressure_pub.publish(height_msg);
 
