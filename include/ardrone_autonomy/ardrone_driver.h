@@ -169,7 +169,6 @@ private:
 
     // For throttling battery, state and gps
     int counter_;
-    int gps_counter_;
     bool first_time_pressure_;
     unsigned int zero_pressure;
 };
