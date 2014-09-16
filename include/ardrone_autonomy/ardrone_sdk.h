@@ -32,10 +32,10 @@ extern "C" {
 #include <ardrone_tool/ardrone_tool_configuration.h>  
 #include <ardrone_tool/Com/config_com.h>
 #include <ardrone_tool/UI/ardrone_input.h>
-#include <ardrone_tool/Video/video_com_stage.h>
 #include <ardrone_tool/Control/ardrone_control.h>
 #include <ardrone_tool/Navdata/ardrone_navdata_client.h>
 
+#include <ardrone_tool/Video/video_com_stage.h>
 #include <ardrone_tool/Video/video_stage.h>
 #include <ardrone_tool/Video/video_recorder_pipeline.h>
 #include <ardrone_tool/Video/video_stage_latency_estimation.h>

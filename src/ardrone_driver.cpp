@@ -15,10 +15,11 @@ void blog(const char *msg, ...) {
 ////////////////////////////////////////////////////////////////////////////////
 
 int counter_;
+int video_counter_;
+
 ARDroneDriver::ARDroneDriver()
-    : image_transport(node_handle),
-      // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
-      initialized_navdata_publishers(false)
+    // Ugly: This has been defined in the template file. Cleaner way to guarantee initialization?
+    : initialized_navdata_publishers(false)
 {
     blog("ArDroneDriver(): Enter");
     inited = false;
@@ -34,11 +35,12 @@ ARDroneDriver::ARDroneDriver()
     land_sub = node_handle.subscribe("ardrone/land", 1, &landCallback);
     blog("ArDroneDriver(): sp4");
     // NOTE: Currently crashing here
-    // image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
+    image_pub = node_handle.advertise<sensor_msgs::Image>("ardrone/image_raw", 10);
+//    image_pub = image_transport.advertiseCamera("ardrone/image_raw", 10);
     blog("ArDroneDriver(): sp5");
-    // hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
+//    hori_pub = image_transport.advertiseCamera("ardrone/front/image_raw", 10);
     blog("ArDroneDriver(): sp6");
-    // vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
+//    vert_pub = image_transport.advertiseCamera("ardrone/bottom/image_raw", 10);
     blog("ArDroneDriver(): sp7");
     toggleCam_service = node_handle.advertiseService("ardrone/togglecam", toggleCamCallback);
     blog("ArDroneDriver(): sp8");
@@ -144,6 +146,8 @@ ARDroneDriver::ARDroneDriver()
 
     // GSC: For throttle battery, state and gps
     counter_ = 0;
+    // JAC: For hacked throttling of video images to 1Hz
+    video_counter_ = 0;
 
     // GSC: Fill sonar message static part
     sonar_msg.radiation_type = sensor_msgs::Range::ULTRASOUND;
@@ -199,14 +203,22 @@ void ARDroneDriver::run()
         } else {
             if (!realtime_video)
             {
-                vp_os_mutex_lock(&video_lock);
-                copy_current_frame_id = current_frame_id;
-                vp_os_mutex_unlock(&video_lock);
-                if (copy_current_frame_id != last_frame_id)
-                {
-                    last_frame_id = copy_current_frame_id;
-                    publish_video();
+                if(video_counter_ == 0) {
+                  vp_os_mutex_lock(&video_lock);
+                  copy_current_frame_id = current_frame_id;
+                  vp_os_mutex_unlock(&video_lock);
+                  if (copy_current_frame_id != last_frame_id)
+                  {
+                      last_frame_id = copy_current_frame_id;
+                      publish_video();
+                  }
+                } else {
+                  // blog("Skipping video loop. video_counter_ = %d", video_counter_);
                 }
+                video_counter_ = (video_counter_ + 1) % 50;
+            } else {
+                ROS_WARN_ONCE("realtime_video disabled");
+                // blog("realtime_video disabled");
             }
 
             if (!realtime_navdata)
@@ -372,14 +384,16 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
-    // JAC: HACK
-    return;
-
-    if (
-            (image_pub.getNumSubscribers() == 0) &&
-            (hori_pub.getNumSubscribers() == 0) &&
-            (vert_pub.getNumSubscribers() == 0)
-       ) return;
+    /*
+    // JAC: I think this doesn't get updated when publishers get registered
+    // so disabling to force video publishing for now
+    //
+    if ((image_pub.getNumSubscribers() == 0)) {
+      ROS_WARN("No subscribers for video");
+      blog("No subscribers for video");
+      return;
+    }
+    */
 
     // Camera Info (NO PIP)
 
@@ -423,6 +437,7 @@ void ARDroneDriver::publish_video()
         }
         else
         {
+            blog("Something is wrong with camera channel config.");
             ROS_WARN_ONCE("Something is wrong with camera channel config.");
         }
 
@@ -445,8 +460,9 @@ void ARDroneDriver::publish_video()
             cinfo_msg_hori.width = D1_STREAM_WIDTH;
             cinfo_msg_hori.height = D1_STREAM_HEIGHT;
 
-            image_pub.publish(image_msg, cinfo_msg_hori);
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // image_pub.publish(image_msg, cinfo_msg_hori);
+            image_pub.publish(image_msg);
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
         }
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
@@ -472,8 +488,9 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH;
             cinfo_msg_vert.height = D1_VERTSTREAM_HEIGHT;
-            image_pub.publish(image_msg, cinfo_msg_vert);
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // image_pub.publish(image_msg, cinfo_msg_vert);
+            image_pub.publish(image_msg);
+       //     vert_pub.publish(image_msg, cinfo_msg_vert);
         }
         else if (cam_state == ZAP_CHANNEL_LARGE_HORI_SMALL_VERT)
         {
@@ -502,7 +519,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_hori.width = D1_STREAM_WIDTH - D1_MODE2_PIP_WIDTH;
             cinfo_msg_hori.height = D1_STREAM_HEIGHT;
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
 
             //Bottom
             image_msg.width = D1_MODE2_PIP_WIDTH;
@@ -524,7 +541,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_vert.width = D1_MODE2_PIP_WIDTH;
             cinfo_msg_vert.height = D1_MODE2_PIP_HEIGHT;
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // vert_pub.publish(image_msg, cinfo_msg_vert);
         }
         else if (cam_state == ZAP_CHANNEL_LARGE_VERT_SMALL_HORI)
         {
@@ -553,7 +570,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_vert.width = D1_VERTSTREAM_WIDTH - D1_MODE3_PIP_WIDTH;
             cinfo_msg_vert.height = D1_VERTSTREAM_HEIGHT;
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // vert_pub.publish(image_msg, cinfo_msg_vert);
 
             //Front
             image_msg.width = D1_MODE3_PIP_WIDTH;
@@ -574,7 +591,7 @@ void ARDroneDriver::publish_video()
 
             cinfo_msg_hori.width = D1_MODE3_PIP_WIDTH;
             cinfo_msg_hori.height = D1_MODE3_PIP_HEIGHT;
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
         }
     }
 
@@ -582,8 +599,7 @@ void ARDroneDriver::publish_video()
      * For Drone 2 w/ SDK2. Both camera streams are 360p.
      * No 720p support for now.
      * SDK 2.0 Does not support PIP.
-     */
-    if (IS_ARDRONE2)
+     */ if (IS_ARDRONE2)
     {
         sensor_msgs::Image image_msg;
         sensor_msgs::Image::_data_type::iterator _it;
@@ -603,6 +619,7 @@ void ARDroneDriver::publish_video()
         else
         {
             ROS_WARN_ONCE("Something is wrong with camera channel config.");
+            blog("Something is wrong with camera channel config.");
         }
 
         image_msg.width = D2_STREAM_WIDTH;
@@ -624,8 +641,9 @@ void ARDroneDriver::publish_video()
             */
             cinfo_msg_hori.width = D2_STREAM_WIDTH;
             cinfo_msg_hori.height = D2_STREAM_HEIGHT;
-            image_pub.publish(image_msg, cinfo_msg_hori); // /ardrone
-            hori_pub.publish(image_msg, cinfo_msg_hori);
+            // image_pub.publish(image_msg, cinfo_msg_hori); // /ardrone
+            image_pub.publish(image_msg); // /ardrone
+            // hori_pub.publish(image_msg, cinfo_msg_hori);
         }
         else if (cam_state == ZAP_CHANNEL_VERT)
         {
@@ -634,8 +652,9 @@ void ARDroneDriver::publish_video()
             */
             cinfo_msg_vert.width = D2_STREAM_WIDTH;
             cinfo_msg_vert.height = D2_STREAM_HEIGHT;
-            image_pub.publish(image_msg, cinfo_msg_vert); // /ardrone
-            vert_pub.publish(image_msg, cinfo_msg_vert);
+            // image_pub.publish(image_msg, cinfo_msg_vert); // /ardrone
+            image_pub.publish(image_msg); // /ardrone
+            // vert_pub.publish(image_msg, cinfo_msg_vert);
         }
     }
 
