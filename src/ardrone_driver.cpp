@@ -15,6 +15,8 @@ void blog(const char *msg, ...) {
 ////////////////////////////////////////////////////////////////////////////////
 
 int counter_;
+int video_counter_;
+
 ARDroneDriver::ARDroneDriver()
     // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
     : initialized_navdata_publishers(false)
@@ -144,6 +146,8 @@ ARDroneDriver::ARDroneDriver()
 
     // GSC: For throttle battery, state and gps
     counter_ = 0;
+    // JAC: For hacked throttling of video images to 1Hz
+    video_counter_ = 0;
 
 }
 
@@ -191,14 +195,22 @@ void ARDroneDriver::run()
         } else {
             if (!realtime_video)
             {
-                vp_os_mutex_lock(&video_lock);
-                copy_current_frame_id = current_frame_id;
-                vp_os_mutex_unlock(&video_lock);
-                if (copy_current_frame_id != last_frame_id)
-                {
-                    last_frame_id = copy_current_frame_id;
-                    publish_video();
+                if(video_counter_ == 0) {
+                  vp_os_mutex_lock(&video_lock);
+                  copy_current_frame_id = current_frame_id;
+                  vp_os_mutex_unlock(&video_lock);
+                  if (copy_current_frame_id != last_frame_id)
+                  {
+                      last_frame_id = copy_current_frame_id;
+                      publish_video();
+                  }
+                } else {
+                  // blog("Skipping video loop. video_counter_ = %d", video_counter_);
                 }
+                video_counter_ = (video_counter_ + 1) % 50;
+            } else {
+                ROS_WARN_ONCE("realtime_video disabled");
+                // blog("realtime_video disabled");
             }
 
             if (!realtime_navdata)
@@ -364,9 +376,16 @@ double ARDroneDriver::getRosParam(char* param, double defaultVal)
 
 void ARDroneDriver::publish_video()
 {
-    if (
-            (image_pub.getNumSubscribers() == 0)
-       ) return;
+    /*
+    // JAC: I think this doesn't get updated when publisher get registered
+    // so disabling to force video publishing for now
+    //
+    if ((image_pub.getNumSubscribers() == 0)) {
+      ROS_WARN("No subscrivers for video");
+      blog("No subscribers for video");
+      return;
+    }
+    */
 
     // Camera Info (NO PIP)
 
@@ -410,6 +429,7 @@ void ARDroneDriver::publish_video()
         }
         else
         {
+            blog("Something is wrong with camera channel config.");
             ROS_WARN_ONCE("Something is wrong with camera channel config.");
         }
 
@@ -571,8 +591,7 @@ void ARDroneDriver::publish_video()
      * For Drone 2 w/ SDK2. Both camera streams are 360p.
      * No 720p support for now.
      * SDK 2.0 Does not support PIP.
-     */
-    if (IS_ARDRONE2)
+     */ if (IS_ARDRONE2)
     {
         sensor_msgs::Image image_msg;
         sensor_msgs::Image::_data_type::iterator _it;
@@ -592,6 +611,7 @@ void ARDroneDriver::publish_video()
         else
         {
             ROS_WARN_ONCE("Something is wrong with camera channel config.");
+            blog("Something is wrong with camera channel config.");
         }
 
         image_msg.width = D2_STREAM_WIDTH;
