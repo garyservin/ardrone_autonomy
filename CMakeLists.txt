@@ -98,13 +98,18 @@ catkin_package(
     libsdl-dev
 )
 
+# Pass through build type to ardronelib by deciding whether or not to apply patch
+IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+  set(DEBUG_SYMBOLS_PATCH patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/debug-symbols.patch &&)
+ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+
 include(ExternalProject)
 externalproject_add(ardronelib
 	URL ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-stripped-2.0.1.tgz
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	PATCH_COMMAND
+    ${DEBUG_SYMBOLS_PATCH}
 		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone_lib.patch &&
-		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/debug-symbols.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-common-gps.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-keys-gps.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-file-gps.patch
