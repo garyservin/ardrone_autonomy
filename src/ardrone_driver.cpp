@@ -18,7 +18,7 @@ int counter_;
 int video_counter_;
 
 ARDroneDriver::ARDroneDriver()
-    // Ugly: This has been defined in the template file. Cleaner way to guarantee initilaztion?
+    // Ugly: This has been defined in the template file. Cleaner way to guarantee initialization?
     : initialized_navdata_publishers(false)
 {
     blog("ArDroneDriver(): Enter");
