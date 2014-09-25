@@ -3484,7 +3484,7 @@ void ARDroneDriver::PublishNavdataTypes(const navdata_unpacked_t &n, const ros::
 				navdata_gps_msg.channels[k] = navdata_gps_channel_msg;
 			}
 
-			pub_navdata_gps.publish(navdata_gps_msg);
+			//pub_navdata_gps.publish(navdata_gps_msg);
 
 		}
 

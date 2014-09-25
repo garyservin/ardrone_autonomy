@@ -826,7 +826,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
         ROS_WARN_THROTTLE(30, "There is something wrong with the magnetometer readings (Magnitude is extremely small).");
     }
 
-    navdata_pub.publish(legacynavdata_msg);
+    //navdata_pub.publish(legacynavdata_msg);
     imu_pub.publish(imu_msg);
 
     // Sonar altitude sensor
