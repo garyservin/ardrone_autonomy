@@ -115,7 +115,7 @@ ARDroneDriver::ARDroneDriver()
     sonar_msg.radiation_type = sensor_msgs::Range::ULTRASOUND;
     sonar_msg.field_of_view = 0.6958131978512;
     sonar_msg.min_range = 0.0;
-    sonar_msg.max_range = 3.0;
+    sonar_msg.max_range = 5.0;
 
     first_time_pressure_ = true;
     zero_pressure = 101325;
