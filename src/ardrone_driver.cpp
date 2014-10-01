@@ -9,6 +9,7 @@ void blog(const char *msg, ...) {
     __android_log_vprint(ANDROID_LOG_INFO, "ARDRONE_DRIVER_OBJ_ANDROID", msg, args);
     va_end(args);
 }
+#include <signal.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 // class ARDroneDriver
@@ -53,7 +54,10 @@ ARDroneDriver::ARDroneDriver()
     setFlightAnimation_service = node_handle.advertiseService("ardrone/setflightanimation", setFlightAnimationCallback);
     blog("ArDroneDriver(): sp12");
     setRecord_service = node_handle.advertiseService("ardrone/setrecord", setRecordCallback );
+    setAutonomouseFlight_service = node_handle.advertiseService("ardrone/setautoflight", setAutomousFlightCallback);
+    setGPSTarget_service = node_handle.advertiseService("ardrone/setgpstarget", setGPSTargetWayPointCallback);
     blog("ArDroneDriver(): After pubs and subs");
+
 
     /*
         To be honest, I am not sure why advertising a service using class members should be this complicated!

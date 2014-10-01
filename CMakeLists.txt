@@ -16,6 +16,7 @@ find_package(
     message_generation
     std_msgs
     geometry_msgs
+    geographic_msgs
 )
 
 add_service_files(
@@ -25,6 +26,7 @@ add_service_files(
 	FlightAnim.srv
 	LedAnim.srv
 	RecordEnable.srv
+	SetGPSTarget.srv
 )
 
 add_message_files(
@@ -69,7 +71,7 @@ add_message_files(
 )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(DEPENDENCIES geometry_msgs std_msgs)
+generate_messages(DEPENDENCIES geometry_msgs std_msgs geographic_msgs)
 
 # catkin_package parameters: http://ros.org/doc/groovy/api/catkin/html/dev_guide/generated_cmake_api.html#catkin-package
 catkin_package(
@@ -94,6 +96,7 @@ catkin_package(
     camera_info_manager
     std_msgs
     geometry_msgs
+    geographic_msgs
   DEPENDS
     libsdl-dev
 )
@@ -114,7 +117,8 @@ externalproject_add(ardronelib
 		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone_lib.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-common-gps.patch &&
 		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-keys-gps.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-file-gps.patch
+		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-file-gps.patch &&
+		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/gps-waypoint.patch
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
 	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/ardrone
