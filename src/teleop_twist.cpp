@@ -5,6 +5,13 @@
 #include <geographic_msgs/KeyValue.h>
 #include <vector>
 
+#include <android/log.h>
+void blog2(const char *msg, ...) {
+    va_list args;
+    va_start(args, msg);
+    __android_log_vprint(ANDROID_LOG_INFO, "ARDRONE_DRIVER_OBJ_ANDROID", msg, args);
+    va_end(args);
+}
 inline float max(float a, float b) { return a > b ? a : b; }
 inline float min(float a, float b) { return a < b ? a : b; }
 inline bool in_rangef(float a, float _min, float _max) {return a >= _min && a <= _max; } //inclusive
@@ -111,6 +118,7 @@ bool flatTrimCallback(std_srvs::Empty::Request &request, std_srvs::Empty::Respon
     ardrone_at_set_flat_trim();
     vp_os_mutex_unlock(&twist_lock);
     fprintf(stderr, "\nFlat Trim Set.\n");
+    blog2("\nFlat Trim Set.\n");
 }
 
 void setAutomousFlight(const bool enable) {
@@ -119,6 +127,7 @@ void setAutomousFlight(const bool enable) {
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_enable, &_e, NULL);
     vp_os_mutex_unlock(&twist_lock);
     fprintf(stderr, "\nSet Autonomouse Flight to %s\n", enable ? "ON" : "OFF");
+    blog2("\nSet Autonomouse Flight to %s\n", enable ? "ON" : "OFF");
 }
 
 bool setAutomousFlightCallback(ardrone_autonomy::RecordEnable::Request &request, ardrone_autonomy::RecordEnable::Response &response){
@@ -145,6 +154,7 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
         alt = (int) round(request.target.position.altitude * 1000.0); //mm
     } else {
         fprintf(stderr, "Invalid value for latitude, longitude or altitude.\n");
+        blog2("Invalid value for latitude, longitude or altitude.\n");
         return false;
     }
 
@@ -152,6 +162,7 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
         v = (int) round(atof(request.target.props[0].value.c_str()) * 1000.0); // mm/s
         if (!in_range(v, 0, 10000)) { // max: 10m/s
             fprintf(stderr, "Requested velocity is not in range: %d\n", v);
+            blog2("Requested velocity is not in range: %d\n", v);
             return false;
         }
     } else {
@@ -175,6 +186,7 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_mode, param_str, NULL);
     vp_os_mutex_unlock(&twist_lock);
     fprintf(stderr, "\nSet GPS WayPoint \"%s\"\n", param_str);
+    blog2("\nSet GPS WayPoint \"%s\"\n", param_str);
     response.result = true;
 
     return true;
