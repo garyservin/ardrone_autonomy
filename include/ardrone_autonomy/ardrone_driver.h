@@ -107,7 +107,9 @@ private:
     ros::ServiceServer flatTrim_service;
     ros::ServiceServer setFlightAnimation_service;
     ros::ServiceServer setRecord_service;
-	
+    ros::ServiceServer setAutonomouseFlight_service;
+    ros::ServiceServer setGPSTarget_service;
+
 	/*
 	 * Orange Green : 1
 	 * Orange Yellow: 2

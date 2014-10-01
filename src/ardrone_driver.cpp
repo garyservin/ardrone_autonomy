@@ -53,6 +53,8 @@ ARDroneDriver::ARDroneDriver()
     setFlightAnimation_service = node_handle.advertiseService("ardrone/setflightanimation", setFlightAnimationCallback);
     blog("ArDroneDriver(): sp12");
     setRecord_service = node_handle.advertiseService("ardrone/setrecord", setRecordCallback );
+    setAutonomouseFlight_service = node_handle.advertiseService("ardrone/setautoflight", setAutomousFlightCallback);
+    setGPSTarget_service = node_handle.advertiseService("ardrone/setgpstarget", setGPSTargetWayPointCallback);
     blog("ArDroneDriver(): After pubs and subs");
 
     /*
