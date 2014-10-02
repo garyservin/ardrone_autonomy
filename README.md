@@ -60,7 +60,7 @@
 
 ### Binary Install
 
-On supported _Ubuntu_ platform and for ROS _Hydro_ and _Groovy_ you can install the driver using `apt-get install ros-*-ardrone_autonomy` e.g. `apt-get install ros-hydro-ardrone_autonomy`.
+On supported _Ubuntu_ platform and for ROS _Hydro_ and _Groovy_ you can install the driver using `apt-get install ros-*-ardrone-autonomy` e.g. `apt-get install ros-hydro-ardrone-autonomy`.
 
 ### Compile and Install from Source
 
@@ -122,7 +122,7 @@ Information received from the drone will be published to the `ardrone/navdata` t
 * `rotY`: Forward/backward tilt in degrees (rotation about the Y axis)
 * `rotZ`: Orientation in degrees (rotation about the Z axis)
 * `magX`, `magY`, `magZ`: Magnetometer readings (AR-Drone 2.0 Only) (TBA: Convention)
-* `pressure`: Pressure sensed by Drone's barometer (AR-Drone 2.0 Only) (TBA: Unit)
+* `pressure`: Pressure sensed by Drone's barometer (AR-Drone 2.0 Only) (Pa)
 * `temp` : Temperature sensed by Drone's sensor (AR-Drone 2.0 Only) (TBA: Unit)
 * `wind_speed`: Estimated wind speed (AR-Drone 2.0 Only) (TBA: Unit)
 * `wind_angle`: Estimated wind angle (AR-Drone 2.0 Only) (TBA: Unit)

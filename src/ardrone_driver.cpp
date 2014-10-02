@@ -1,6 +1,6 @@
-#include "ardrone_driver.h"
-#include "teleop_twist.h"
-#include "video.h"
+#include <ardrone_autonomy/ardrone_driver.h>
+#include <ardrone_autonomy/teleop_twist.h>
+#include <ardrone_autonomy/video.h>
 #include <signal.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,6 +28,9 @@ ARDroneDriver::ARDroneDriver()
     flatTrim_service = node_handle.advertiseService("ardrone/flattrim", flatTrimCallback);
     setFlightAnimation_service = node_handle.advertiseService("ardrone/setflightanimation", setFlightAnimationCallback);
     setRecord_service = node_handle.advertiseService("ardrone/setrecord", setRecordCallback );
+    setAutonomouseFlight_service = node_handle.advertiseService("ardrone/setautoflight", setAutomousFlightCallback);
+    setGPSTarget_service = node_handle.advertiseService("ardrone/setgpstarget", setGPSTargetWayPointCallback);
+
 
     /*
         To be honest, I am not sure why advertising a service using class members should be this complicated!
@@ -260,7 +263,7 @@ void ARDroneDriver::configureDrone()
 
 
     #define NAVDATA_STRUCTS_INITIALIZE
-    #include "NavdataMessageDefinitions.h"
+    #include <ardrone_autonomy/NavdataMessageDefinitions.h>
     #undef NAVDATA_STRUCTS_INITIALIZE
 }
 
@@ -849,7 +852,7 @@ void ARDroneDriver::publish_navdata(navdata_unpacked_t &navdata_raw, const ros::
 
 // Load actual auto-generated code to publish full navdata
 #define NAVDATA_STRUCTS_SOURCE
-#include "NavdataMessageDefinitions.h"
+#include <ardrone_autonomy/NavdataMessageDefinitions.h>
 #undef NAVDATA_STRUCTS_SOURCE
 
 void ARDroneDriver::publish_tf()
