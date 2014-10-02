@@ -12,6 +12,9 @@ void blog2(const char *msg, ...) {
     __android_log_vprint(ANDROID_LOG_INFO, "ARDRONE_DRIVER_OBJ_ANDROID", msg, args);
     va_end(args);
 }
+
+#define _RAD2DEG 57.2957184819
+
 inline float max(float a, float b) { return a > b ? a : b; }
 inline float min(float a, float b) { return a < b ? a : b; }
 inline bool in_rangef(float a, float _min, float _max) {return a >= _min && a <= _max; } //inclusive
@@ -139,9 +142,15 @@ bool setAutomousFlightCallback(ardrone_autonomy::RecordEnable::Request &request,
 bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &request, ardrone_autonomy::SetGPSTarget::Response &response){
 
     //"10000,0,492767188,-1229157891,994,165,165,525000,0,0"
+    //"10000,0,lat,long,alt,vx,vy,525000,orientation(degrees*100),0"
+
+    blog2("\nsetGPSTargetWayPointCallback\n");
+
     char param_str[255];
     long int lat = 0, lon = 0;
-    int alt = 0, v = 0;
+    int alt = 0, v = 0, orientation = 0;
+
+    blog2("\nAfter defininf variables\n");
 
     if (
             in_rangef(request.target.position.latitude, -90.0, 90.0) &&
@@ -149,6 +158,7 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
             in_rangef(request.target.position.altitude, 0.0, 1000.0) // Don't be crazy though!
         )
     {
+        blog2("\nInside if\n");
         lat = (long int) round(request.target.position.latitude * 1.0e7);
         lon = (long int) round(request.target.position.longitude * 1.0e7);
         alt = (int) round(request.target.position.altitude * 1000.0); //mm
@@ -158,16 +168,33 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
         return false;
     }
 
-    if ((request.target.props.size() == 1) && (request.target.props[0].key == "velocity")) {
-        v = (int) round(atof(request.target.props[0].value.c_str()) * 1000.0); // mm/s
-        if (!in_range(v, 0, 10000)) { // max: 10m/s
-            fprintf(stderr, "Requested velocity is not in range: %d\n", v);
-            blog2("Requested velocity is not in range: %d\n", v);
-            return false;
+    blog2("\nAfter checking values\n");
+
+    // Set default values
+    v = 500;
+    orientation = 0;
+
+    blog2("\nBefor checing parameters\n");
+
+    for(int i = 0; i < request.target.props.size(); i++){
+        if(request.target.props[i].key == "velocity"){
+            v = (int) round(atof(request.target.props[i].value.c_str()) * 1000.0); // mm/s
+            if (!in_range(v, 0, 10000)) { // max: 10m/s
+                fprintf(stderr, "Requested velocity is not in range: %d\n", v);
+                blog2("Requested velocity is not in range: %d\n", v);
+                return false;
+            }
+        }else if(request.target.props[i].key == "orientation"){
+            orientation = (int) round(atof(request.target.props[i].value.c_str()) * _RAD2DEG * 100.0); // degrees
+            if (!in_range(orientation, -36000, 36000)) { // max: 360 degrees
+                fprintf(stderr, "Requested orientation is not in range: %d\n", orientation);
+                blog2("Requested orientation is not in range: %d\n", orientation);
+                return false;
+            }
         }
-    } else {
-        v = 500;
     }
+
+    blog2("\nAfter checing parameters\n");
 
     sprintf(param_str,"%d,%d,%ld,%ld,%d,%d,%d,%d,%d,%d",
             10000,
@@ -178,11 +205,14 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
             v,
             v,
             525000,
-            0,
+            orientation,
             0
             );
 
+    blog2("\nAfter filling parameters\n");
+
     vp_os_mutex_lock(&twist_lock);
+    blog2("\nAfter mutex_lock \"%s\"\n", param_str);
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_mode, param_str, NULL);
     vp_os_mutex_unlock(&twist_lock);
     fprintf(stderr, "\nSet GPS WayPoint \"%s\"\n", param_str);
