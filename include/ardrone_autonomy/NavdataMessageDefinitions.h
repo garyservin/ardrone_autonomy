@@ -144,12 +144,6 @@
 	ros::Publisher pub_navdata_host;
 	bool enabled_navdata_host;
 	ardrone_autonomy::navdata_host navdata_host_msg;	
-	ros::Publisher pub_navdata_host;
-	bool enabled_navdata_host;
-	ardrone_autonomy::navdata_host navdata_host_msg;	
-	ros::Publisher pub_navdata_camera_settings;
-	bool enabled_navdata_camera_settings;
-	ardrone_autonomy::navdata_camera_settings navdata_camera_settings_msg;	
 	ros::Publisher pub_navdata_camera_settings;
 	bool enabled_navdata_camera_settings;
 	ardrone_autonomy::navdata_camera_settings navdata_camera_settings_msg;	

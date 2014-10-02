@@ -66,16 +66,11 @@ catkin_package(
   CATKIN_DEPENDS message_runtime
 )
 
-
 include(ExternalProject)
 ExternalProject_Add(ardronelib
 	GIT_REPOSITORY https://github.com/AutonomyLab/ardronelib.git
 	GIT_TAG gps
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
-		patch -p1 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone_lib.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-common-gps.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-keys-gps.patch &&
-		patch -p0 < ${PROJECT_SOURCE_DIR}/ARDroneSDK/ardrone-sdk-navdata-file-gps.patch
 	CONFIGURE_COMMAND echo "No configure"
 	BUILD_COMMAND make
 	INSTALL_COMMAND make install INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}/lib/ardrone
