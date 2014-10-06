@@ -110,7 +110,7 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 include(ExternalProject)
 externalproject_add(ardronelib
-	URL https://github.com/garyservin/ardronelib/archive/android-gps.tar.gz
+	URL https://github.com/garyservin/ardronelib/archive/android-gps-debug.tar.gz
 	PREFIX ${CMAKE_BINARY_DIR}/ardrone
 	PATCH_COMMAND
 		patch -p1 --verbose < ${DEBUG_SYMBOLS_PATCH}
