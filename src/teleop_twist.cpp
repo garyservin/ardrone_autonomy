@@ -144,13 +144,9 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
     //"10000,0,492767188,-1229157891,994,165,165,525000,0,0"
     //"10000,0,lat,long,alt,vx,vy,525000,orientation(degrees*100),0"
 
-    blog2("\nsetGPSTargetWayPointCallback\n");
-
     char param_str[255];
     long int lat = 0, lon = 0;
     int alt = 0, v = 0, orientation = 0;
-
-    blog2("\nAfter defininf variables\n");
 
     if (
             in_rangef(request.target.position.latitude, -90.0, 90.0) &&
@@ -158,7 +154,6 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
             in_rangef(request.target.position.altitude, 0.0, 1000.0) // Don't be crazy though!
         )
     {
-        blog2("\nInside if\n");
         lat = (long int) round(request.target.position.latitude * 1.0e7);
         lon = (long int) round(request.target.position.longitude * 1.0e7);
         alt = (int) round(request.target.position.altitude * 1000.0); //mm
@@ -168,13 +163,9 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
         return false;
     }
 
-    blog2("\nAfter checking values\n");
-
     // Set default values
     v = 500;
     orientation = 0;
-
-    blog2("\nBefor checing parameters\n");
 
     for(int i = 0; i < request.target.props.size(); i++){
         if(request.target.props[i].key == "velocity"){
@@ -194,8 +185,6 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
         }
     }
 
-    blog2("\nAfter checing parameters\n");
-
     sprintf(param_str,"%d,%d,%ld,%ld,%d,%d,%d,%d,%d,%d",
             10000,
             0,
@@ -209,10 +198,7 @@ bool setGPSTargetWayPointCallback(ardrone_autonomy::SetGPSTarget::Request &reque
             0
             );
 
-    blog2("\nAfter filling parameters\n");
-
     vp_os_mutex_lock(&twist_lock);
-    blog2("\nAfter mutex_lock \"%s\"\n", param_str);
     ARDRONE_TOOL_CONFIGURATION_ADDEVENT(flying_camera_mode, param_str, NULL);
     vp_os_mutex_unlock(&twist_lock);
     fprintf(stderr, "\nSet GPS WayPoint \"%s\"\n", param_str);
